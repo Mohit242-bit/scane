@@ -6,9 +6,13 @@ import { email } from "@/lib/email"
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
-  phone: z.string().regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit mobile number"),
-  subject: z.enum(["general", "booking", "technical", "partnership", "feedback"]),
+  phone: z
+    .string()
+    .regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit mobile number")
+    .optional(),
+  subject: z.string().min(1, "Subject is required"),
   message: z.string().min(10, "Message must be at least 10 characters"),
+  inquiryType: z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -42,17 +46,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid form data", details: validation.error.errors }, { status: 400 })
     }
 
-    const { name, email: userEmail, phone, subject, message } = validation.data
+    const { name, email: userEmail, phone, subject, message, inquiryType } = validation.data
 
     // Send notification email to support team
-    const subjectMap = {
-      general: "General Inquiry",
-      booking: "Booking Support Request",
-      technical: "Technical Issue Report",
-      partnership: "Partnership Inquiry",
-      feedback: "Customer Feedback",
-    }
-
     const emailHtml = `
       <!DOCTYPE html>
       <html>
@@ -62,8 +58,8 @@ export async function POST(req: NextRequest) {
           <style>
             body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #0B1B2B; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #0AA1A7; color: white; padding: 20px; text-align: center; }
-            .content { padding: 20px; background: #F5F7FA; }
+            .header { background: #3B82F6; color: white; padding: 20px; text-align: center; }
+            .content { padding: 20px; background: #F8FAFC; }
             .field { background: white; padding: 15px; border-radius: 8px; margin: 10px 0; }
             .label { font-weight: bold; color: #0B1B2B; }
             .value { margin-top: 5px; }
@@ -73,7 +69,7 @@ export async function POST(req: NextRequest) {
           <div class="container">
             <div class="header">
               <h1>New Contact Form Submission</h1>
-              <p>${subjectMap[subject]}</p>
+              <p>${inquiryType || "General Inquiry"}</p>
             </div>
             <div class="content">
               <div class="field">
@@ -84,13 +80,19 @@ export async function POST(req: NextRequest) {
                 <div class="label">Email:</div>
                 <div class="value">${userEmail}</div>
               </div>
+              ${
+                phone
+                  ? `
               <div class="field">
                 <div class="label">Phone:</div>
                 <div class="value">+91 ${phone}</div>
               </div>
+              `
+                  : ""
+              }
               <div class="field">
                 <div class="label">Subject:</div>
-                <div class="value">${subjectMap[subject]}</div>
+                <div class="value">${subject}</div>
               </div>
               <div class="field">
                 <div class="label">Message:</div>
@@ -108,7 +110,7 @@ export async function POST(req: NextRequest) {
 
     await email.sendEmail({
       to: "support@scanezy.com",
-      subject: `[ScanEzy] ${subjectMap[subject]} from ${name}`,
+      subject: `[ScanEzy] ${subject} from ${name}`,
       html: emailHtml,
     })
 
@@ -122,9 +124,9 @@ export async function POST(req: NextRequest) {
           <style>
             body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #0B1B2B; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #0AA1A7; color: white; padding: 20px; text-align: center; }
-            .content { padding: 20px; background: #F5F7FA; }
-            .footer { text-align: center; padding: 20px; color: #5B6B7A; font-size: 14px; }
+            .header { background: #3B82F6; color: white; padding: 20px; text-align: center; }
+            .content { padding: 20px; background: #F8FAFC; }
+            .footer { text-align: center; padding: 20px; color: #64748B; font-size: 14px; }
           </style>
         </head>
         <body>
@@ -134,9 +136,9 @@ export async function POST(req: NextRequest) {
             </div>
             <div class="content">
               <p>Dear ${name},</p>
-              <p>We've received your message regarding "${subjectMap[subject]}" and will respond within 24 hours.</p>
+              <p>We've received your message and will respond within 24 hours.</p>
               <p><strong>Your message:</strong></p>
-              <p style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #0AA1A7;">
+              <p style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #3B82F6;">
                 ${message.replace(/\n/g, "<br>")}
               </p>
               <p>If you have any urgent concerns, please call us at <strong>1800-SCANEZY</strong>.</p>
@@ -155,9 +157,6 @@ export async function POST(req: NextRequest) {
       subject: "Message Received - ScanEzy Support",
       html: confirmationHtml,
     })
-
-    // Simulate processing time
-    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     return NextResponse.json({
       success: true,

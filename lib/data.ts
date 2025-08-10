@@ -109,3 +109,20 @@ export const centers: Center[] = [
     area_hint: "HSR Layout Sector 1",
   },
 ]
+
+// Helper functions
+export function getServiceById(id: string): Service | undefined {
+  return services.find((service) => service.id === id)
+}
+
+export function getCenterById(id: string): Center | undefined {
+  return centers.find((center) => center.id === id)
+}
+
+export function getCentersByService(serviceId: string): Center[] {
+  return centers.filter((center) => center.services.includes(serviceId))
+}
+
+export function getServicesByCategory(category: string): Service[] {
+  return services.filter((service) => service.category === category)
+}

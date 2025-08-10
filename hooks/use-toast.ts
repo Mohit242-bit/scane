@@ -1,21 +1,20 @@
 "use client"
 
-// Inspired by react-hot-toast library
 import * as React from "react"
 
-import type {
-  ToastActionElement,
-  ToastProps,
-} from "@/components/ui/toast"
-
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+type ToastProps = {
+  id: string
+  title?: string
+  description?: string
+  action?: React.ReactNode
+  variant?: "default" | "destructive"
+}
 
 type ToasterToast = ToastProps & {
   id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
+  title?: string
+  description?: string
+  action?: React.ReactNode
 }
 
 const actionTypes = {
@@ -28,7 +27,7 @@ const actionTypes = {
 let count = 0
 
 function genId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER
+  count = (count + 1) % Number.MAX_VALUE
   return count.toString()
 }
 
@@ -69,7 +68,7 @@ const addToRemoveQueue = (toastId: string) => {
       type: "REMOVE_TOAST",
       toastId: toastId,
     })
-  }, TOAST_REMOVE_DELAY)
+  }, 1000000)
 
   toastTimeouts.set(toastId, timeout)
 }
@@ -79,22 +78,18 @@ export const reducer = (state: State, action: Action): State => {
     case "ADD_TOAST":
       return {
         ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+        toasts: [action.toast, ...state.toasts].slice(0, 1),
       }
 
     case "UPDATE_TOAST":
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t
-        ),
+        toasts: state.toasts.map((t) => (t.id === action.toast.id ? { ...t, ...action.toast } : t)),
       }
 
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -111,7 +106,7 @@ export const reducer = (state: State, action: Action): State => {
                 ...t,
                 open: false,
               }
-            : t
+            : t,
         ),
       }
     }

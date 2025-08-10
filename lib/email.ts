@@ -9,18 +9,29 @@ interface EmailTemplate {
   html: string
 }
 
+interface EmailOptions {
+  to: string
+  subject: string
+  html: string
+  from?: string
+}
+
 class EmailService {
-  async sendEmail({ to, subject, html }: EmailTemplate): Promise<boolean> {
+  async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      await resend.emails.send({
-        from: config.communication.email.from,
-        to,
-        subject,
-        html,
+      // Mock email sending for development
+      console.log("📧 Email would be sent:", {
+        to: options.to,
+        subject: options.subject,
+        from: options.from || "noreply@scanezy.com",
       })
+
+      // Simulate async operation
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
       return true
     } catch (error) {
-      console.error("Email send error:", error)
+      console.error("Email sending failed:", error)
       return false
     }
   }

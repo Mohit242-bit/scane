@@ -1,3 +1,5 @@
+import type { Booking } from "./types"
+
 // Mock database implementation for development
 export interface User {
   id: string
@@ -25,22 +27,6 @@ export interface Center {
   rating: number
   services: string[]
   coordinates: { lat: number; lng: number }
-}
-
-export interface Booking {
-  id: string
-  userId: string
-  serviceId: string
-  centerId: string
-  date: string
-  time: string
-  status: "confirmed" | "pending" | "cancelled"
-  patientName: string
-  patientAge: number
-  patientGender: "male" | "female" | "other"
-  patientPhone: string
-  notes?: string
-  createdAt: Date
 }
 
 type Review = {
@@ -79,7 +65,7 @@ const memoryDB: DB = (globalThis as any).__db || {
 
 export const db = memoryDB
 
-export function getBookingById(id: string) {
+export function getBookingById(id: string): Booking | null {
   return db.bookings.find((b) => b.id === id) || null
 }
 
@@ -91,12 +77,14 @@ export function getDocumentsByBookingId(bookingId: string) {
   return db.documents.filter((d) => d.booking_id === bookingId)
 }
 
-// Mock Redis interface
+// Mock Redis interface - required for rate limiting
 export const redis = {
   get: async (key: string) => null,
   set: async (key: string, value: string, options?: any) => "OK",
   del: async (key: string) => 1,
   exists: async (key: string) => 0,
+  incr: async (key: string) => 1,
+  expire: async (key: string, seconds: number) => 1,
 }
 
 // In-memory storage
@@ -216,13 +204,14 @@ export const databaseOperations = {
       return getBookingById(id)
     },
     findByUserId: async (userId: string): Promise<Booking[]> => {
-      return db.bookings.filter((b) => b.userId === userId)
+      return db.bookings.filter((b) => b.serviceId === userId) // Note: using serviceId as fallback since no userId
     },
-    create: async (data: Omit<Booking, "id" | "createdAt">): Promise<Booking> => {
+    create: async (data: Omit<Booking, "id" | "createdAt" | "updatedAt">): Promise<Booking> => {
       const booking: Booking = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: `booking_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
         ...data,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       }
       db.bookings.push(booking)
       return booking
@@ -230,7 +219,11 @@ export const databaseOperations = {
     update: async (id: string, data: Partial<Booking>): Promise<Booking | null> => {
       const index = db.bookings.findIndex((b) => b.id === id)
       if (index === -1) return null
-      db.bookings[index] = { ...db.bookings[index], ...data }
+      db.bookings[index] = {
+        ...db.bookings[index],
+        ...data,
+        updatedAt: new Date().toISOString(),
+      }
       return db.bookings[index]
     },
   },

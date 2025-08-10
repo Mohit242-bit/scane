@@ -1,93 +1,95 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Stethoscope, Menu, X } from "lucide-react"
-import { useState } from "react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu, Calendar, Phone } from "lucide-react"
 
 export default function Navigation() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const navItems = [
+    { href: "/", label: "Home" },
+    { href: "/services", label: "Services" },
+    { href: "/centers", label: "Centers" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
+  ]
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Stethoscope className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">ScanEzy</span>
-          </Link>
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div className="container flex h-16 items-center justify-between">
+        <Link href="/" className="flex items-center space-x-2">
+          <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <span className="text-white font-bold text-sm">S</span>
+          </div>
+          <span className="font-bold text-xl">ScanEzy</span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/services" className="text-gray-700 hover:text-blue-600 transition-colors">
-              Services
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-6">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="text-sm font-medium transition-colors hover:text-blue-600"
+            >
+              {item.label}
             </Link>
-            <Link href="/centers" className="text-gray-700 hover:text-blue-600 transition-colors">
-              Centers
-            </Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
-              About
-            </Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors">
-              Contact
-            </Link>
-            <Button asChild>
-              <Link href="/book">Book Now</Link>
-            </Button>
+          ))}
+        </nav>
+
+        <div className="flex items-center space-x-4">
+          <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
+            <Phone className="h-4 w-4" />
+            <span>1800-SCANEZY</span>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button variant="ghost" size="sm" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
-          </div>
-        </div>
+          <Button asChild className="hidden sm:flex">
+            <Link href="/book">
+              <Calendar className="mr-2 h-4 w-4" />
+              Book Now
+            </Link>
+          </Button>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t">
-              <Link
-                href="/services"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Services
-              </Link>
-              <Link
-                href="/centers"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Centers
-              </Link>
-              <Link
-                href="/about"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link
-                href="/contact"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contact
-              </Link>
-              <div className="px-3 py-2">
-                <Button asChild className="w-full">
-                  <Link href="/book" onClick={() => setMobileMenuOpen(false)}>
-                    Book Now
+          {/* Mobile Navigation */}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <div className="flex flex-col space-y-4 mt-8">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="text-lg font-medium transition-colors hover:text-blue-600"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
                   </Link>
-                </Button>
+                ))}
+                <div className="pt-4 border-t">
+                  <div className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+                    <Phone className="h-4 w-4" />
+                    <span>1800-SCANEZY</span>
+                  </div>
+                  <Button asChild className="w-full">
+                    <Link href="/book" onClick={() => setIsOpen(false)}>
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Book Appointment
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
-    </nav>
+    </header>
   )
 }

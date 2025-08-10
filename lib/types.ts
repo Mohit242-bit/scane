@@ -27,7 +27,7 @@ export interface Booking {
   centerId: string
   date: string
   time: string
-  status: "pending" | "confirmed" | "completed" | "cancelled"
+  status: "confirmed" | "pending" | "cancelled"
   patientName: string
   patientAge: number
   patientGender: "male" | "female" | "other"
@@ -39,11 +39,22 @@ export interface Booking {
   updatedAt: string
 }
 
-export interface TimeSlot {
+export interface Slot {
   id: string
-  centerId: string
-  date: string
-  time: string
-  available: boolean
-  serviceId?: string
+  center_id: string
+  service_id: string
+  start_ts: number
+  end_ts: number
+  status: "OPEN" | "BOOKED" | "BLOCKED"
+  source: string
+  price: number
+  tat_hours: number
+}
+
+export interface User {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  createdAt: string
 }

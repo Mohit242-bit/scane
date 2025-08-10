@@ -6,58 +6,52 @@ interface RateLimitOptions {
   keyGenerator?: (identifier: string) => string
 }
 
+interface RateLimitResult {
+  allowed: boolean
+  remaining: number
+  resetTime: number
+}
+
 class RateLimiter {
-  async checkLimit(
-    identifier: string,
-    options: RateLimitOptions,
-  ): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
-    const key = options.keyGenerator ? options.keyGenerator(identifier) : `rate_limit:${identifier}`
-    const window = Math.floor(Date.now() / options.windowMs)
-    const windowKey = `${key}:${window}`
+  async checkLimit(identifier: string, options: RateLimitOptions): Promise<RateLimitResult> {
+    const { windowMs, maxRequests, keyGenerator } = options
+    const key = keyGenerator ? keyGenerator(identifier) : `rate_limit:${identifier}`
 
     try {
-      const current = await redis.incr(windowKey)
+      // Get current count
+      const current = await redis.get(key)
+      const count = current ? Number.parseInt(current) : 0
 
-      if (current === 1) {
-        // Set expiration for the first request in this window
-        await redis.expire(windowKey, Math.ceil(options.windowMs / 1000))
+      if (count >= maxRequests) {
+        return {
+          allowed: false,
+          remaining: 0,
+          resetTime: Date.now() + windowMs,
+        }
       }
 
-      const allowed = current <= options.maxRequests
-      const remaining = Math.max(0, options.maxRequests - current)
-      const resetTime = (window + 1) * options.windowMs
+      // Increment counter
+      await redis.incr(key)
 
-      return { allowed, remaining, resetTime }
+      // Set expiry if this is the first request
+      if (count === 0) {
+        await redis.expire(key, Math.ceil(windowMs / 1000))
+      }
+
+      return {
+        allowed: true,
+        remaining: maxRequests - count - 1,
+        resetTime: Date.now() + windowMs,
+      }
     } catch (error) {
       console.error("Rate limiting error:", error)
-      // Fail open - allow the request if Redis is down
-      return { allowed: true, remaining: options.maxRequests - 1, resetTime: Date.now() + options.windowMs }
+      // Allow request if rate limiting fails
+      return {
+        allowed: true,
+        remaining: maxRequests - 1,
+        resetTime: Date.now() + windowMs,
+      }
     }
-  }
-
-  // Predefined rate limiters
-  async checkOTPLimit(phone: string): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
-    return this.checkLimit(phone, {
-      windowMs: 60 * 60 * 1000, // 1 hour
-      maxRequests: 5, // 5 OTP requests per hour
-      keyGenerator: (phone) => `otp_limit:${phone}`,
-    })
-  }
-
-  async checkAPILimit(ip: string): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
-    return this.checkLimit(ip, {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      maxRequests: 100, // 100 requests per 15 minutes
-      keyGenerator: (ip) => `api_limit:${ip}`,
-    })
-  }
-
-  async checkBookingLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
-    return this.checkLimit(userId, {
-      windowMs: 24 * 60 * 60 * 1000, // 24 hours
-      maxRequests: 10, // 10 bookings per day
-      keyGenerator: (userId) => `booking_limit:${userId}`,
-    })
   }
 }
 
