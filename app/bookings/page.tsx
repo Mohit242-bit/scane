@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { getCurrentUser, type User } from "@/lib/auth"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -28,20 +28,25 @@ interface Booking {
 }
 
 export default function BookingsPage() {
-  const { data: session, status } = useSession()
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const [bookings, setBookings] = useState<Booking[]>([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin")
-    } else if (status === "authenticated") {
-      fetchBookings()
+    const loadUserAndBookings = async () => {
+      const currentUser = await getCurrentUser()
+      if (!currentUser) {
+        router.push("/auth/signin")
+        return
+      }
+      setUser(currentUser)
+      await fetchBookings(currentUser.id)
     }
-  }, [status, router])
+    loadUserAndBookings()
+  }, [router])
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (userId: string) => {
     try {
       const response = await fetch("/api/bookings")
       if (response.ok) {
@@ -68,7 +73,7 @@ export default function BookingsPage() {
     }
   }
 
-  if (status === "loading" || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { getCurrentUser, type User } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,13 +9,14 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { User, Phone, Mail, Calendar, MapPin, Edit2, Save, X } from "lucide-react"
+import { User as UserIcon, Phone, Mail, Calendar, MapPin, Edit2, Save, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import AuthGuard from "@/components/auth-guard"
 import LoadingSpinner from "@/components/loading-spinner"
+import supabase from "@/lib/supabaseClient"
 
 export default function ProfilePage() {
-  const { data: session, update } = useSession()
+  const [user, setUser] = useState<User | null>(null)
   const { toast } = useToast()
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -25,35 +26,43 @@ export default function ProfilePage() {
   })
 
   useEffect(() => {
-    if (session?.user) {
-      setFormData({
-        name: session.user.name || "",
-        email: session.user.email || "",
-      })
+    const loadUser = async () => {
+      const currentUser = await getCurrentUser()
+      setUser(currentUser)
+      if (currentUser) {
+        setFormData({
+          name: currentUser.name || "",
+          email: currentUser.email || "",
+        })
+      }
     }
-  }, [session])
+    loadUser()
+  }, [])
 
   const handleSave = async () => {
+    if (!user) return
+
     setLoading(true)
     try {
-      const response = await fetch("/api/user/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
+      // Update user profile in database
+      const { error } = await supabase
+        .from("users")
+        .update({
+          full_name: formData.name,
+          email: formData.email,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", user.id)
 
-      if (!response.ok) {
-        throw new Error("Failed to update profile")
+      if (error) {
+        throw error
       }
 
-      // Update session
-      await update({
-        ...session,
-        user: {
-          ...session?.user,
-          name: formData.name,
-          email: formData.email,
-        },
+      // Update local user state
+      setUser({
+        ...user,
+        name: formData.name,
+        email: formData.email,
       })
 
       setEditing(false)
@@ -61,10 +70,10 @@ export default function ProfilePage() {
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
       })
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Update failed",
-        description: "Please try again.",
+        description: error.message || "Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -74,8 +83,8 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setFormData({
-      name: session?.user?.name || "",
-      email: session?.user?.email || "",
+      name: user?.name || "",
+      email: user?.email || "",
     })
     setEditing(false)
   }
@@ -117,13 +126,13 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src={session?.user?.image || ""} alt={session?.user?.name || ""} />
+                  <AvatarImage src={""} alt={user?.name || ""} />
                   <AvatarFallback className="text-lg">
-                    {session?.user?.name?.charAt(0) || session?.user?.phone?.slice(-2) || "U"}
+                    {user?.name?.charAt(0) || user?.phone?.slice(-2) || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-semibold text-[#0B1B2B]">{session?.user?.name || "User"}</div>
+                  <div className="font-semibold text-[#0B1B2B]">{user?.name || "User"}</div>
                   <div className="text-sm text-[#5B6B7A]">Member since {new Date().getFullYear()}</div>
                 </div>
               </div>
@@ -142,8 +151,8 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <div className="flex items-center gap-2 p-2 rounded-md bg-[#F5F7FA]">
-                      <User className="h-4 w-4 text-[#5B6B7A]" />
-                      <span className="text-[#0B1B2B]">{session?.user?.name || "Not provided"}</span>
+                      <UserIcon className="h-4 w-4 text-[#5B6B7A]" />
+                      <span className="text-[#0B1B2B]">{user?.name || "Not provided"}</span>
                     </div>
                   )}
                 </div>
@@ -152,10 +161,12 @@ export default function ProfilePage() {
                   <Label htmlFor="phone">Phone Number</Label>
                   <div className="flex items-center gap-2 p-2 rounded-md bg-[#F5F7FA]">
                     <Phone className="h-4 w-4 text-[#5B6B7A]" />
-                    <span className="text-[#0B1B2B]">+91 {session?.user?.phone}</span>
-                    <Badge variant="secondary" className="ml-auto">
-                      Verified
-                    </Badge>
+                    <span className="text-[#0B1B2B]">{user?.phone || "Not provided"}</span>
+                    {user?.phone && (
+                      <Badge variant="secondary" className="ml-auto">
+                        Verified
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-xs text-[#5B6B7A]">Phone number cannot be changed</p>
                 </div>
@@ -173,7 +184,7 @@ export default function ProfilePage() {
                   ) : (
                     <div className="flex items-center gap-2 p-2 rounded-md bg-[#F5F7FA]">
                       <Mail className="h-4 w-4 text-[#5B6B7A]" />
-                      <span className="text-[#0B1B2B]">{session?.user?.email || "Not provided"}</span>
+                      <span className="text-[#0B1B2B]">{user?.email || "Not provided"}</span>
                     </div>
                   )}
                 </div>

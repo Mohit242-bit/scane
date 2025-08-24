@@ -3,10 +3,7 @@ export const config = {
     url: process.env.DATABASE_URL || "postgresql://localhost:5432/scanezy",
     redis: process.env.REDIS_URL || "redis://localhost:6379",
   },
-  auth: {
-    secret: process.env.NEXTAUTH_SECRET || "development-secret-key-change-in-production",
-    url: process.env.NEXTAUTH_URL,
-  },
+  // Auth handled by Supabase Auth - no NextAuth config needed
   payment: {
     razorpay: {
       keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_demo",
@@ -19,7 +16,7 @@ export const config = {
       phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || "demo_id",
     },
     twilio: {
-      accountSid: process.env.TWILIO_ACCOUNT_SID || "demo_sid",
+      accountSid: process.env.TWILIO_ACCOUNT_SID || "ACdemo_account_sid_placeholder",
       authToken: process.env.TWILIO_AUTH_TOKEN || "demo_token",
       phoneNumber: process.env.TWILIO_PHONE_NUMBER || "+1234567890",
     },

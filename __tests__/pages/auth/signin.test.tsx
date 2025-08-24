@@ -1,11 +1,9 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
-import { signIn } from "next-auth/react"
 import SignInPage from "@/app/auth/signin/page"
-import jest from "jest"
+import "@testing-library/jest-dom"
 
-// Mock NextAuth
-jest.mock("next-auth/react")
-const mockSignIn = signIn as jest.MockedFunction<typeof signIn>
+// Mock Supabase client
+jest.mock("@/lib/supabaseClient")
 
 // Mock fetch
 global.fetch = jest.fn()

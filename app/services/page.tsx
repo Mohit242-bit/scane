@@ -8,20 +8,25 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Clock, Search, IndianRupee, AlertCircle } from "lucide-react"
 import Link from "next/link"
-import { services } from "@/lib/data"
+import { services as dummyServices } from '@/lib/data'
 
 export default function ServicesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [priceRange, setPriceRange] = useState("all")
 
-  const categories = ["all", ...Array.from(new Set(services.map((service) => service.category)))]
+  const services = dummyServices
+  const error = null
+  const isLoading = false
+
+  const categories = services ? ["all", ...Array.from(new Set(services.map((service: any) => service.category || 'Other')))] : ["all"]
 
   const filteredServices = useMemo(() => {
-    return services.filter((service) => {
+    if (!services) return [];
+    return services.filter((service: any) => {
       const matchesSearch =
         service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (service.description || '').toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesCategory = selectedCategory === "all" || service.category === selectedCategory
 
@@ -33,7 +38,7 @@ export default function ServicesPage() {
 
       return matchesSearch && matchesCategory && matchesPrice
     })
-  }, [searchTerm, selectedCategory, priceRange])
+  }, [services, searchTerm, selectedCategory, priceRange])
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -91,51 +96,39 @@ export default function ServicesPage() {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredServices.map((service) => (
-            <Card key={service.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge variant="secondary">{service.category}</Badge>
-                  <div className="flex items-center text-lg font-bold text-green-600">
-                    <IndianRupee className="h-4 w-4" />
-                    {service.price.toLocaleString()}
-                  </div>
-                </div>
-                <CardTitle className="text-xl">{service.name}</CardTitle>
-                <CardDescription>{service.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center text-gray-600">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {service.duration} minutes
+        {isLoading && (
+          <div className="text-center py-12">Loading services...</div>
+        )}
+        {error && (
+          <div className="text-center py-12 text-red-500">Error loading services.</div>
+        )}
+        {!isLoading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredServices.map((service: any) => (
+              <Card key={service.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">{service.category || 'Other'}</Badge>
+                    <div className="flex items-center text-lg font-bold text-green-600">
+                      <IndianRupee className="h-4 w-4" />
+                      {service.price?.toLocaleString()}
                     </div>
-                    {service.fasting_required && (
-                      <Badge variant="outline" className="text-xs">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        Fasting Required
-                      </Badge>
-                    )}
                   </div>
-
-                  {service.preparation && (
-                    <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                      <strong>Preparation:</strong> {service.preparation}
-                    </div>
-                  )}
-
-                  <Button asChild className="w-full">
-                    <Link href={`/book?service=${service.id}`}>Book Now</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredServices.length === 0 && (
+                  <CardTitle className="text-xl">{service.name}</CardTitle>
+                  <CardDescription>{service.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <Button asChild className="w-full">
+                      <Link href={`/book?service=${service.id}`}>Book Now</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+        {!isLoading && !error && filteredServices.length === 0 && (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
               <Search className="h-12 w-12 mx-auto" />

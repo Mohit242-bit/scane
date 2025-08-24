@@ -126,3 +126,23 @@ export function getCentersByService(serviceId: string): Center[] {
 export function getServicesByCategory(category: string): Service[] {
   return services.filter((service) => service.category === category)
 }
+
+// City data for booking flow
+export function citiesSeed() {
+  return [
+    { slug: "mumbai", name: "Mumbai", state: "Maharashtra" },
+    { slug: "delhi", name: "Delhi", state: "Delhi" },
+    { slug: "bangalore", name: "Bangalore", state: "Karnataka" },
+    { slug: "chennai", name: "Chennai", state: "Tamil Nadu" },
+    { slug: "hyderabad", name: "Hyderabad", state: "Telangana" },
+    { slug: "pune", name: "Pune", state: "Maharashtra" },
+  ]
+}
+
+// Get centers for a specific city
+export function seededCentersFor(citySlug: string): Center[] {
+  const cityName = citiesSeed().find((c) => c.slug === citySlug)?.name
+  if (!cityName) return []
+  
+  return centers.filter((center) => center.city === cityName)
+}

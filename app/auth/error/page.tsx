@@ -17,7 +17,8 @@ const errorMessages: Record<string, string> = {
 export default function AuthErrorPage() {
   const searchParams = useSearchParams()
   const error = searchParams.get("error")
-  const message = errorMessages[error || "Default"] || errorMessages.Default
+  const customMessage = searchParams.get("message")
+  const message = customMessage || errorMessages[error || "Default"] || errorMessages.Default
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F5F7FA] p-4">
@@ -32,9 +33,21 @@ export default function AuthErrorPage() {
             <AlertDescription>{message}</AlertDescription>
           </Alert>
 
+          {/* Show debug info in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <Alert>
+              <AlertDescription className="text-xs">
+                Debug: error={error}, message={customMessage}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-2">
             <Button asChild className="w-full bg-[#0AA1A7] hover:bg-[#089098]">
-              <Link href="/auth/signin">Try Again</Link>
+              <Link href="/partner/login">Try Partner Login Again</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full bg-transparent">
+              <Link href="/auth/signin">Regular Sign In</Link>
             </Button>
             <Button asChild variant="outline" className="w-full bg-transparent">
               <Link href="/">

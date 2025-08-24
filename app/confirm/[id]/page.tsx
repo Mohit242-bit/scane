@@ -35,7 +35,7 @@ export default function ConfirmPage() {
 
   const fetchBooking = async () => {
     try {
-      const response = await fetch(`/api/bookings/${params.id}`)
+      const response = await fetch(`/api/bookings?id=${params.id}`)
       if (response.ok) {
         const data = await response.json()
         setBooking(data)
@@ -169,7 +169,7 @@ Generated on: ${new Date().toLocaleString()}
                     <p className="text-lg font-semibold">{booking.serviceId}</p>
                     <div className="flex items-center text-lg font-bold text-green-600">
                       <IndianRupee className="h-4 w-4" />
-                      {booking.totalAmount.toLocaleString()}
+                      {(booking.totalAmount || 0).toLocaleString()}
                     </div>
                   </div>
                 </div>

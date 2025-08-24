@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react"
-import { useSession } from "next-auth/react"
+import { getCurrentUser } from "@/lib/auth"
 import BookingFlow from "@/components/booking-flow"
 import jest from "jest" // Import jest to declare the variable
 
-// Mock the useSession hook
-jest.mock("next-auth/react")
-const mockUseSession = useSession as jest.MockedFunction<typeof useSession>
+// Mock the getCurrentUser function
+jest.mock("@/lib/auth")
+const mockGetCurrentUser = getCurrentUser as jest.MockedFunction<typeof getCurrentUser>
 
 // Mock fetch
 global.fetch = jest.fn()
@@ -13,10 +13,7 @@ global.fetch = jest.fn()
 describe("BookingFlow", () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockUseSession.mockReturnValue({
-      data: null,
-      status: "unauthenticated",
-    })
+    mockGetCurrentUser.mockResolvedValue(null)
   })
 
   it("renders service selection step", () => {
@@ -35,12 +32,12 @@ describe("BookingFlow", () => {
   })
 
   it("allows slot selection when user is authenticated", async () => {
-    mockUseSession.mockReturnValue({
-      data: {
-        user: { id: "1", name: "Test User", phone: "9876543210" },
-        expires: "2024-12-31",
-      },
-      status: "authenticated",
+    mockGetCurrentUser.mockResolvedValue({
+      id: "1",
+      name: "Test User",
+      email: "test@example.com",
+      phone: "9876543210",
+      role: "customer"
     })
 
     // Mock slots API response

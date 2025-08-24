@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,11 +11,12 @@ import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Check, MapPin, ShieldCheck, Timer, Zap, AlertCircle } from "lucide-react"
-import { servicesSeed, citiesSeed, seededCentersFor } from "@/lib/data"
+import { services, citiesSeed, seededCentersFor } from "@/lib/data"
 import type { Center, Service, Slot } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { trackEvent } from "@/lib/events"
 import { useToast } from "@/hooks/use-toast"
+import supabase from "@/lib/supabaseClient"
 import LoadingSpinner from "@/components/loading-spinner"
 import ErrorBoundary from "@/components/error-boundary"
 import RazorpayPayment from "@/components/razorpay-payment"
@@ -33,10 +33,11 @@ export default function BookingFlow({
   defaultWhen = "soonest",
 }: FlowProps) {
   const router = useRouter()
-  const { data: session, status } = useSession()
   const { toast } = useToast()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  const services = useMemo(() => servicesSeed(), [])
+  const servicesList = useMemo(() => services, [])
   const cities = useMemo(() => citiesSeed(), [])
   const [serviceSlug, setServiceSlug] = useState(defaultService)
   const [citySlug, setCitySlug] = useState(defaultCity)
@@ -55,8 +56,32 @@ export default function BookingFlow({
   const holdTimerRef = useRef<number | null>(null)
   const holdExpiresAtRef = useRef<number | null>(null)
 
-  const chosenService: Service | undefined = services.find((s) => s.slug === serviceSlug)
+  const chosenService: Service | undefined = servicesList.find((s) => s.id === serviceSlug)
   const city = cities.find((c) => c.slug === citySlug)
+
+  // Authentication check
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (error) {
+        console.error('Error getting user:', error)
+        setUser(null)
+      }
+    }
+
+    getUser()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null)
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
     // Track service view
@@ -143,9 +168,7 @@ export default function BookingFlow({
     if (!selectedSlot) return
 
     // Check if user is authenticated
-    if (status === "loading") return
-
-    if (!session) {
+    if (!user) {
       // Redirect to sign in with callback
       const callbackUrl = `/book?service=${serviceSlug}&city=${citySlug}&slot=${selectedSlot.id}`
       router.push(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
@@ -159,8 +182,8 @@ export default function BookingFlow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user: {
-            phone: session.user.phone,
-            name: session.user.name,
+            phone: user?.phone,
+            name: user?.user_metadata?.name || user?.email,
           },
           serviceSlug,
           slotId: selectedSlot.id,
@@ -181,7 +204,7 @@ export default function BookingFlow({
         service_id: chosenService?.id,
         center_hint: centers.find((c) => c.id === selectedSlot.center_id)?.area_hint,
         price: selectedSlot.price,
-        user_id: session.user.id,
+        user_id: user?.id,
       })
 
       setStep(3)
@@ -202,7 +225,7 @@ export default function BookingFlow({
     trackEvent("payment_succeeded", {
       booking_id: paymentData.bookingId,
       amount: selectedSlot?.price,
-      user_id: session?.user.id,
+      user_id: user?.id,
     })
 
     router.push(`/confirm/${paymentData.bookingId}`)
@@ -218,7 +241,7 @@ export default function BookingFlow({
     trackEvent("payment_failed", {
       booking_id: bookingId,
       error: error.message,
-      user_id: session?.user.id,
+      user_id: user?.id,
     })
   }
 
@@ -277,8 +300,8 @@ export default function BookingFlow({
                         <SelectValue placeholder="Select service" />
                       </SelectTrigger>
                       <SelectContent>
-                        {services.map((s) => (
-                          <SelectItem key={s.slug} value={s.slug}>
+                        {servicesList.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
                             {s.name}
                           </SelectItem>
                         ))}
@@ -418,9 +441,9 @@ export default function BookingFlow({
                     onClick={handleSlotSelection}
                     className="mt-2 h-11 bg-[#0AA1A7] text-white hover:bg-[#089098] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B7F171] disabled:opacity-50"
                   >
-                    {session ? "Continue to Payment" : "Sign In to Continue"}
+                    {user ? "Continue to Payment" : "Sign In to Continue"}
                   </Button>
-                  <div className="text-xs text-[#5B6B7A]">{!session && "You'll need to sign in before booking."}</div>
+                  <div className="text-xs text-[#5B6B7A]">{!user && "You'll need to sign in before booking."}</div>
                 </CardContent>
               </Card>
               <Card>

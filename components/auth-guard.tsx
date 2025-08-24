@@ -2,10 +2,10 @@
 
 import type React from "react"
 
-import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import LoadingSpinner from "./loading-spinner"
+import supabase from "@/lib/supabaseClient"
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -14,24 +14,43 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children, requireAuth = true, redirectTo = "/auth/signin" }: AuthGuardProps) {
-  const { data: session, status } = useSession()
   const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (status === "loading") return // Still loading
+    const checkAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
 
-    if (requireAuth && !session) {
-      router.push(redirectTo)
-      return
+        if (requireAuth && !user) {
+          router.push(redirectTo)
+          return
+        }
+
+        if (!requireAuth && user) {
+          router.push("/") // Redirect authenticated users away from auth pages
+          return
+        }
+      } catch (error) {
+        console.error("Auth check error:", error)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    if (!requireAuth && session) {
-      router.push("/") // Redirect authenticated users away from auth pages
-      return
-    }
-  }, [session, status, requireAuth, redirectTo, router])
+    checkAuth()
 
-  if (status === "loading") {
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkAuth()
+    })
+
+    return () => subscription.unsubscribe()
+  }, [requireAuth, redirectTo, router])
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -39,11 +58,11 @@ export default function AuthGuard({ children, requireAuth = true, redirectTo = "
     )
   }
 
-  if (requireAuth && !session) {
+  if (requireAuth && !user) {
     return null // Will redirect
   }
 
-  if (!requireAuth && session) {
+  if (!requireAuth && user) {
     return null // Will redirect
   }
 

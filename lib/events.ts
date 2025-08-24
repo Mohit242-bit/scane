@@ -15,6 +15,7 @@ type EventType =
   | "slot_checked"
   | "booking_initiated"
   | "payment_succeeded"
+  | "payment_failed"
   | "booking_confirmed"
   | "document_uploaded"
   | "booking_completed"

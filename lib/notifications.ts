@@ -1,7 +1,8 @@
 import { whatsapp } from "./whatsapp"
 import { sms } from "./sms"
 import { email } from "./email"
-import { sql } from "./database"
+// Using Supabase instead of direct SQL
+import supabase from "./supabaseClient"
 
 interface NotificationData {
   userId: string
@@ -14,10 +15,17 @@ interface NotificationData {
 class NotificationService {
   async sendNotification(data: NotificationData): Promise<void> {
     // Get user details
-    const user = await sql`SELECT * FROM users WHERE id = ${data.userId} LIMIT 1`
-    if (!user[0]) {
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', data.userId)
+      .limit(1)
+    
+    if (error || !users || users.length === 0) {
       throw new Error("User not found")
     }
+    
+    const user = users[0]
 
     const userDetails = user[0]
 
@@ -40,11 +48,18 @@ class NotificationService {
             break
         }
 
-        // Log notification attempt
-        await sql`
-          INSERT INTO notifications (user_id, booking_id, type, channel, status, content, sent_at)
-          VALUES (${data.userId}, ${data.bookingId}, ${data.type}, ${channel}, ${success ? "SENT" : "FAILED"}, ${JSON.stringify(data.content)}, ${success ? new Date() : null})
-        `
+        // Log notification attempt  
+        const { error: logError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: data.userId,
+            booking_id: data.bookingId,
+            type: data.type,
+            channel: channel,
+            status: success ? "SENT" : "FAILED",
+            content: data.content,
+            sent_at: success ? new Date().toISOString() : null
+          })
       } catch (error) {
         console.error(`Failed to send ${channel} notification:`, error)
       }
@@ -98,17 +113,18 @@ class NotificationService {
     if (delay > 0) {
       setTimeout(async () => {
         try {
-          const booking = await sql`
-            SELECT b.*, u.phone, u.name, u.email, s.name as service_name, c.name as center_name
-            FROM bookings b
-            JOIN users u ON b.user_id = u.id
-            JOIN services s ON b.service_id = s.id
-            JOIN centers c ON b.center_id = c.id
-            WHERE b.id = ${bookingId}
-          `
+          const { data: bookingData, error } = await supabase
+            .from('bookings')
+            .select(`
+              *,
+              users!inner(phone, name, email),
+              services!inner(name),
+              centers!inner(name)
+            `)
+            .eq('id', bookingId)
+            .single()
 
-          if (booking[0]) {
-            const bookingData = booking[0]
+          if (!error && bookingData) {
             await this.sendNotification({
               userId: bookingData.user_id,
               bookingId: bookingData.id,

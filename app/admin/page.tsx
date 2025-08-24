@@ -1,421 +1,276 @@
-"use client"
-
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { BarChart, Users, Calendar, DollarSign, Download, Plus, Edit, Trash2 } from "lucide-react"
-import { db } from "@/lib/db"
-import { servicesSeed } from "@/lib/data"
-import { useToast } from "@/hooks/use-toast"
+import AdminGuard from "@/components/admin-guard"
+import AdminNavigation from "@/components/admin-navigation"
+import { 
+  CalendarDays, 
+  Users, 
+  Building2, 
+  Stethoscope, 
+  TrendingUp,
+  ArrowRight,
+  BarChart3,
+  Settings,
+  UserCheck,
+  AlertTriangle
+} from "lucide-react"
+
+// This would normally come from your API
+const mockStats = {
+  totalBookings: 1247,
+  todayBookings: 23,
+  activePartners: 42,
+  pendingApprovals: 7,
+  revenue: 324567,
+  monthlyGrowth: 12.5
+}
+
+const recentActivity = [
+  {
+    id: 1,
+    type: "booking",
+    description: "New booking by John Doe for MRI scan",
+    time: "2 minutes ago",
+    status: "pending"
+  },
+  {
+    id: 2,
+    type: "partner",
+    description: "DiagnoTech Labs submitted partnership application",
+    time: "15 minutes ago",
+    status: "pending"
+  },
+  {
+    id: 3,
+    type: "booking",
+    description: "Booking completed - X-Ray at City Medical",
+    time: "1 hour ago",
+    status: "completed"
+  },
+  {
+    id: 4,
+    type: "issue",
+    description: "Payment failed for booking #1234",
+    time: "2 hours ago",
+    status: "error"
+  }
+]
 
 export default function AdminPage() {
-  const [bookings, setBookings] = useState(db.bookings)
-  const [loading, setLoading] = useState(false)
-  const [newService, setNewService] = useState({
-    name: "",
-    modality: "MRI",
-    duration_min: 30,
-    base_price: 1000,
-    prep_text_md: "",
-  })
-  const { toast } = useToast()
-
-  const stats = {
-    totalBookings: bookings.length,
-    confirmedBookings: bookings.filter((b) => b.status === "CONFIRMED").length,
-    totalRevenue: bookings.reduce((sum, b) => sum + (b.status === "CONFIRMED" ? b.amount : 0), 0),
-    avgBookingValue: bookings.length > 0 ? bookings.reduce((sum, b) => sum + b.amount, 0) / bookings.length : 0,
-  }
-
-  const handleAddService = () => {
-    // Mock service addition
-    toast({
-      title: "Service added",
-      description: `${newService.name} has been added to the catalog.`,
-    })
-    setNewService({
-      name: "",
-      modality: "MRI",
-      duration_min: 30,
-      base_price: 1000,
-      prep_text_md: "",
-    })
-  }
-
-  const handleExportBookings = () => {
-    const csv = [
-      "Booking ID,User Phone,Service,Status,Amount,Created",
-      ...bookings.map(
-        (b) =>
-          `${b.id},${b.user_phone},${b.service_id},${b.status},${b.amount},${new Date(b.created_ts).toISOString()}`,
-      ),
-    ].join("\n")
-
-    const blob = new Blob([csv], { type: "text/csv" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `bookings-${new Date().toISOString().split("T")[0]}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-
-    toast({
-      title: "Export complete",
-      description: "Bookings data has been downloaded as CSV.",
-    })
-  }
-
   return (
-    <div className="container py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#0B1B2B] mb-4">Admin Dashboard</h1>
-        <p className="text-[#5B6B7A] text-lg">Manage services, bookings, and platform settings.</p>
+    <AdminGuard>
+      <AdminNavigation />
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-[#0B1B2B] mb-2">Admin Panel</h1>
+          <p className="text-[#5B6B7A]">Welcome to MedEzy administration dashboard</p>
+        </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[#5B6B7A]">Total Bookings</p>
+                <p className="text-2xl font-bold text-[#0B1B2B]">{mockStats.totalBookings}</p>
+                <p className="text-xs text-green-600">+{mockStats.todayBookings} today</p>
+              </div>
+              <CalendarDays className="h-8 w-8 text-[#0AA1A7]" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[#5B6B7A]">Active Partners</p>
+                <p className="text-2xl font-bold text-[#0B1B2B]">{mockStats.activePartners}</p>
+                <p className="text-xs text-orange-600">{mockStats.pendingApprovals} pending</p>
+              </div>
+              <Users className="h-8 w-8 text-[#0AA1A7]" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[#5B6B7A]">Revenue</p>
+                <p className="text-2xl font-bold text-[#0B1B2B]">₹{mockStats.revenue.toLocaleString()}</p>
+                <p className="text-xs text-green-600">+{mockStats.monthlyGrowth}% this month</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-[#0AA1A7]" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[#5B6B7A]">Pending Actions</p>
+                <p className="text-2xl font-bold text-[#0B1B2B]">{mockStats.pendingApprovals}</p>
+                <p className="text-xs text-red-600">Require attention</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4 mb-8">
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0AA1A7]/10">
-              <Calendar className="h-5 w-5 text-[#0AA1A7]" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-[#0B1B2B]">{stats.totalBookings}</div>
-              <div className="text-sm text-[#5B6B7A]">Total Bookings</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#B7F171]/20">
-              <Users className="h-5 w-5 text-[#0B1B2B]" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-[#0B1B2B]">{stats.confirmedBookings}</div>
-              <div className="text-sm text-[#5B6B7A]">Confirmed</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0AA1A7]/10">
-              <DollarSign className="h-5 w-5 text-[#0AA1A7]" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-[#0B1B2B]">₹{stats.totalRevenue.toLocaleString()}</div>
-              <div className="text-sm text-[#5B6B7A]">Revenue</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#B7F171]/20">
-              <BarChart className="h-5 w-5 text-[#0B1B2B]" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-[#0B1B2B]">₹{Math.round(stats.avgBookingValue)}</div>
-              <div className="text-sm text-[#5B6B7A]">Avg Booking</div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Link href="/admin/dashboard">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <BarChart3 className="h-12 w-12 text-[#0AA1A7] mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Main Dashboard</h3>
+              <p className="text-sm text-[#5B6B7A]">Comprehensive analytics and management</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/tables">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <BarChart3 className="h-12 w-12 text-[#0AA1A7] mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Database Tables</h3>
+              <p className="text-sm text-[#5B6B7A]">View and edit all Supabase tables</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/dashboard?tab=bookings">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <CalendarDays className="h-12 w-12 text-[#0AA1A7] mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Manage Bookings</h3>
+              <p className="text-sm text-[#5B6B7A]">View and update appointments</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/dashboard?tab=partners">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <UserCheck className="h-12 w-12 text-[#0AA1A7] mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Partner Approvals</h3>
+              <p className="text-sm text-[#5B6B7A]">Review partnership applications</p>
+              {mockStats.pendingApprovals > 0 && (
+                <Badge variant="destructive" className="mt-2">
+                  {mockStats.pendingApprovals} pending
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
-      <Tabs defaultValue="bookings" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="bookings">Bookings</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
-          <TabsTrigger value="centers">Centers</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="bookings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-[#0B1B2B]">Recent Bookings</CardTitle>
-                  <CardDescription className="text-[#5B6B7A]">Latest booking activity</CardDescription>
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest system events and actions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg border">
+                  <div className="flex-shrink-0">
+                    {activity.type === "booking" && (
+                      <CalendarDays className="h-5 w-5 text-[#0AA1A7]" />
+                    )}
+                    {activity.type === "partner" && (
+                      <Users className="h-5 w-5 text-blue-500" />
+                    )}
+                    {activity.type === "issue" && (
+                      <AlertTriangle className="h-5 w-5 text-red-500" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.description}</p>
+                    <p className="text-xs text-[#5B6B7A]">{activity.time}</p>
+                  </div>
+                  <Badge 
+                    variant={
+                      activity.status === "completed" ? "default" :
+                      activity.status === "pending" ? "outline" :
+                      "destructive"
+                    }
+                  >
+                    {activity.status}
+                  </Badge>
                 </div>
-                <Button onClick={handleExportBookings} variant="outline">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export CSV
+              ))}
+            </div>
+            <div className="mt-4 pt-4 border-t">
+              <Link href="/admin/dashboard">
+                <Button variant="outline" className="w-full">
+                  View All Activity
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Booking ID</TableHead>
-                    <TableHead>Patient</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {bookings.slice(0, 10).map((booking) => (
-                    <TableRow key={booking.id}>
-                      <TableCell className="font-mono text-sm">{booking.id.slice(0, 8)}...</TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{booking.user_name || "N/A"}</div>
-                          <div className="text-sm text-[#5B6B7A]">{booking.user_phone}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{booking.service_id}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={booking.status === "CONFIRMED" ? "default" : "secondary"}
-                          className={booking.status === "CONFIRMED" ? "bg-[#B7F171] text-[#0B1B2B]" : ""}
-                        >
-                          {booking.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>₹{booking.amount}</TableCell>
-                      <TableCell>{new Date(booking.created_ts).toLocaleDateString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="services" className="space-y-4">
-          <Card>
-            <CardHeader>
+        <Card>
+          <CardHeader>
+            <CardTitle>System Overview</CardTitle>
+            <CardDescription>Key metrics and status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-[#0B1B2B]">Service Catalog</CardTitle>
-                  <CardDescription className="text-[#5B6B7A]">Manage available services</CardDescription>
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium">Database</span>
                 </div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="bg-[#0AA1A7] hover:bg-[#089098]">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Service
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add New Service</DialogTitle>
-                      <DialogDescription>Create a new radiology service offering.</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="service-name">Service Name</Label>
-                        <Input
-                          id="service-name"
-                          value={newService.name}
-                          onChange={(e) => setNewService({ ...newService, name: e.target.value })}
-                          placeholder="e.g., MRI Brain with Contrast"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="modality">Modality</Label>
-                        <Select
-                          value={newService.modality}
-                          onValueChange={(value) => setNewService({ ...newService, modality: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="MRI">MRI</SelectItem>
-                            <SelectItem value="CT">CT</SelectItem>
-                            <SelectItem value="XRAY">X-Ray</SelectItem>
-                            <SelectItem value="USG">Ultrasound</SelectItem>
-                            <SelectItem value="PET">PET Scan</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="duration">Duration (minutes)</Label>
-                        <Input
-                          id="duration"
-                          type="number"
-                          value={newService.duration_min}
-                          onChange={(e) =>
-                            setNewService({ ...newService, duration_min: Number.parseInt(e.target.value) })
-                          }
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="price">Base Price (₹)</Label>
-                        <Input
-                          id="price"
-                          type="number"
-                          value={newService.base_price}
-                          onChange={(e) =>
-                            setNewService({ ...newService, base_price: Number.parseInt(e.target.value) })
-                          }
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="prep">Preparation Instructions</Label>
-                        <Textarea
-                          id="prep"
-                          value={newService.prep_text_md}
-                          onChange={(e) => setNewService({ ...newService, prep_text_md: e.target.value })}
-                          placeholder="Enter preparation instructions..."
-                          rows={3}
-                        />
-                      </div>
-                    </div>
-                    <Button onClick={handleAddService} className="bg-[#0AA1A7] hover:bg-[#089098]">
-                      Add Service
-                    </Button>
-                  </DialogContent>
-                </Dialog>
+                <Badge variant="default">Healthy</Badge>
               </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Modality</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead>Base Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {servicesSeed().map((service) => (
-                    <TableRow key={service.id}>
-                      <TableCell className="font-medium">{service.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{service.modality}</Badge>
-                      </TableCell>
-                      <TableCell>{service.duration_min} min</TableCell>
-                      <TableCell>₹{service.base_price}</TableCell>
-                      <TableCell>
-                        <Badge className="bg-[#B7F171] text-[#0B1B2B]">Active</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="centers" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-[#0B1B2B]">Partner Centers</CardTitle>
-              <CardDescription className="text-[#5B6B7A]">Manage radiology center partnerships</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-[#5B6B7A]">
-                Center management features would include:
-                <ul className="mt-2 list-inside list-disc space-y-1">
-                  <li>Add/edit center details and certifications</li>
-                  <li>Manage slot availability and pricing</li>
-                  <li>Monitor center performance metrics</li>
-                  <li>Handle settlement and commission tracking</li>
-                </ul>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium">Payment Gateway</span>
+                </div>
+                <Badge variant="default">Online</Badge>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="settings" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[#0B1B2B]">Platform Settings</CardTitle>
-                <CardDescription className="text-[#5B6B7A]">Configure system-wide settings</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-[#0B1B2B]">Slot Hold Duration</div>
-                    <div className="text-sm text-[#5B6B7A]">How long to hold slots during payment</div>
-                  </div>
-                  <Select defaultValue="7">
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5 min</SelectItem>
-                      <SelectItem value="7">7 min</SelectItem>
-                      <SelectItem value="10">10 min</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 bg-yellow-500 rounded-full"></div>
+                  <span className="text-sm font-medium">SMS Service</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-[#0B1B2B]">Platform Fee</div>
-                    <div className="text-sm text-[#5B6B7A]">Commission percentage</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium text-[#0B1B2B]">3%</div>
-                  </div>
+                <Badge variant="outline">Degraded</Badge>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium">Email Service</span>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[#0B1B2B]">Integration Status</CardTitle>
-                <CardDescription className="text-[#5B6B7A]">Third-party service connections</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Razorpay Payments</span>
-                  <Badge variant="outline" className="text-[#FF735C] border-[#FF735C]">
-                    Not Connected
-                  </Badge>
+                <Badge variant="default">Online</Badge>
+              </div>
+
+              <div className="pt-4 border-t">
+                <div className="text-sm text-[#5B6B7A] mb-2">Server Load</div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-[#0AA1A7] h-2 rounded-full" style={{width: "35%"}}></div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">WhatsApp API</span>
-                  <Badge variant="outline" className="text-[#FF735C] border-[#FF735C]">
-                    Not Connected
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Email Service</span>
-                  <Badge variant="outline" className="text-[#FF735C] border-[#FF735C]">
-                    Not Connected
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Analytics</span>
-                  <Badge className="bg-[#B7F171] text-[#0B1B2B]">Connected</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+                <div className="text-xs text-[#5B6B7A] mt-1">35% - Normal</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      </div>
+    </AdminGuard>
   )
 }

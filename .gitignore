@@ -25,3 +25,57 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/lib/generated/prisma
+ 
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# keys/certs
+*.pem
+*.key
+
+# Development and testing directories
+__tests__/
+cypress/
+tests/
+app/auth-test/
+app/test-oauth/
+app/oauth-diagnostic/
+app/check-oauth/
+app/manual-partner-setup/
+
+# Development files
+test-admin-mvp.js
+jest.config.js
+jest.setup.js
+cypress.config.ts
+
+# Prisma (legacy - using Supabase now)
+prisma/
+*.db
+*.db-journal
+
+# Development scripts
+scripts/seed*.js
+scripts/test-*.js
+scripts/create-schema.js
+scripts/init-*.js
+scripts/check-db.js
+
+# Development documentation
+NEXTAUTH_REMOVAL_COMPLETE.md
+OAUTH_DEBUG.md
+REMOVE_NEXTAUTH_ROUTE.md
+README_SUPABASE.md
+PARTNER_ROADMAP.md
+PARTNER_US_IMPLEMENTATION.md
+customer.md
+partner.md
+supabase.md
+
+# TypeScript build cache
+tsconfig.tsbuildinfo

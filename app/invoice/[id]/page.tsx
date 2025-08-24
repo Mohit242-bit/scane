@@ -5,7 +5,7 @@ import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import type { Booking, Center, Service, Slot } from "@/lib/types"
 import { getBookingById } from "@/lib/db"
-import { servicesSeed, seededCentersFor, seededSlotsFor } from "@/lib/data"
+import { services, seededCentersFor } from "@/lib/data"
 import { Separator } from "@/components/ui/separator"
 
 export default function InvoicePage() {

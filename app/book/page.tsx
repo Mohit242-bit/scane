@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { services as dummyServices, centers as dummyCenters } from '@/lib/data'
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,19 +13,21 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ChevronLeft, ChevronRight, MapPin, Clock, IndianRupee, Calendar, User, CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { services, centers } from "@/lib/data"
+
+import type { Service, Center } from '@/lib/types'
 
 interface BookingData {
+  city: string
   serviceId: string
   centerId: string
   date: string
   time: string
   patientName: string
-  patientAge: number
-  patientGender: "male" | "female" | "other"
   patientPhone: string
   patientEmail: string
-  notes: string
+  patientAge?: number
+  patientGender?: string
+  notes?: string
 }
 
 export default function BookPage() {
@@ -37,26 +40,99 @@ export default function BookPage() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [services, setServices] = useState<Service[]>([])
+  const [centers, setCenters] = useState<Center[]>([])
+  const [servicesCentersMap, setServicesCentersMap] = useState<Record<string, string[]>>({})
+  const [loadingData, setLoadingData] = useState(true)
 
   const [bookingData, setBookingData] = useState<BookingData>({
-    serviceId: preSelectedService || "",
+    city: "",
     centerId: preSelectedCenter || "",
+    serviceId: preSelectedService || "",
     date: "",
     time: "",
     patientName: "",
-    patientAge: 0,
-    patientGender: "male",
     patientPhone: "",
     patientEmail: "",
-    notes: "",
   })
 
-  const availableCenters = bookingData.serviceId
-    ? centers.filter((center) => center.services.includes(bookingData.serviceId))
+  // Fetch services and centers on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch services and their center relationships
+        const servicesCentersResponse = await fetch('/api/services-centers')
+        if (servicesCentersResponse.ok) {
+          const { services: servicesData, servicesCentersMap: mapData } = await servicesCentersResponse.json()
+          console.log('🔍 Fetched services:', servicesData?.length || 0)
+          console.log('🔍 Services-centers map:', mapData)
+          setServices(servicesData || [])
+          setServicesCentersMap(mapData || {})
+        } else {
+          console.error('Failed to fetch services-centers:', servicesCentersResponse.status)
+        }
+
+        // Fetch centers
+        const centersResponse = await fetch('/api/centers')
+        if (centersResponse.ok) {
+          const centersData = await centersResponse.json()
+          console.log('🔍 Fetched centers:', centersData?.length || 0)
+          setCenters(centersData || [])
+        } else {
+          console.error('Failed to fetch centers:', centersResponse.status)
+        }
+
+        // If any API calls fail, fallback to dummy data
+        if (!servicesCentersResponse.ok || !centersResponse.ok) {
+          console.log('📍 Using dummy data as fallback')
+          setServices(dummyServices)
+          setCenters(dummyCenters)
+          // Create a simple map for dummy data - all services available at all centers
+          const dummyMap: Record<string, string[]> = {}
+          dummyServices.forEach(service => {
+            dummyMap[service.id] = dummyCenters.map(center => center.id)
+          })
+          setServicesCentersMap(dummyMap)
+        }
+      } catch (error) {
+        console.error('Failed to fetch data:', error)
+        // Fallback to dummy data
+        setServices(dummyServices)
+        setCenters(dummyCenters)
+        // Create a simple map for dummy data
+        const dummyMap: Record<string, string[]> = {}
+        dummyServices.forEach(service => {
+          dummyMap[service.id] = dummyCenters.map(center => center.id)
+        })
+        setServicesCentersMap(dummyMap)
+      } finally {
+        setLoadingData(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  // Get unique cities from centers
+  const availableCities = [...new Set(centers.map(center => center.city))].sort()
+  
+  // Filter centers by selected city
+  const filteredCenters = bookingData.city
+    ? centers.filter(center => center.city === bookingData.city)
     : centers
 
-  const selectedService = services.find((s) => s.id === bookingData.serviceId)
-  const selectedCenter = centers.find((c) => c.id === bookingData.centerId)
+  // Filter services by selected center
+  const filteredServices = bookingData.centerId
+    ? services.filter((service) => {
+        // Check if this service is available at the selected center
+        const availableCenters = servicesCentersMap[service.id] || []
+        // Ensure availableCenters is an array before calling includes
+        return Array.isArray(availableCenters) && availableCenters.includes(String(bookingData.centerId))
+      })
+    : services
+
+  const selectedService = services.find((s) => String(s.id) === String(bookingData.serviceId))
+  const selectedCenter = centers.find((c) => String(c.id) === String(bookingData.centerId))
 
   const timeSlots = [
     "09:00",
@@ -77,20 +153,24 @@ export default function BookPage() {
   const handleNext = () => {
     setError("")
 
-    if (step === 1 && !bookingData.serviceId) {
-      setError("Please select a service")
+    if (step === 1 && !bookingData.city) {
+      setError("Please select a city")
       return
     }
     if (step === 2 && !bookingData.centerId) {
       setError("Please select a center")
       return
     }
-    if (step === 3 && (!bookingData.date || !bookingData.time)) {
+    if (step === 3 && !bookingData.serviceId) {
+      setError("Please select a service")
+      return
+    }
+    if (step === 4 && (!bookingData.date || !bookingData.time)) {
       setError("Please select date and time")
       return
     }
-    if (step === 4) {
-      if (!bookingData.patientName || !bookingData.patientAge || !bookingData.patientPhone) {
+    if (step === 5) {
+      if (!bookingData.patientName || !bookingData.patientPhone) {
         setError("Please fill in all required fields")
         return
       }
@@ -133,10 +213,11 @@ export default function BookPage() {
   }
 
   const steps = [
-    { id: 1, title: "Select Service", completed: !!bookingData.serviceId },
-    { id: 2, title: "Choose Center", completed: !!bookingData.centerId },
-    { id: 3, title: "Pick Date & Time", completed: !!bookingData.date && !!bookingData.time },
-    { id: 4, title: "Patient Details", completed: false },
+  { id: 1, title: "Select City", completed: !!bookingData.city },
+  { id: 2, title: "Select Center", completed: !!bookingData.centerId },
+  { id: 3, title: "Select Service", completed: !!bookingData.serviceId },
+  { id: 4, title: "Pick Date & Time", completed: !!bookingData.date && !!bookingData.time },
+  { id: 5, title: "Patient Details", completed: false },
   ]
 
   return (
@@ -186,7 +267,7 @@ export default function BookPage() {
             <CardTitle className="flex items-center gap-2">
               {step === 1 && (
                 <>
-                  <Calendar className="h-5 w-5" /> Select Service
+                  <MapPin className="h-5 w-5" /> Select City
                 </>
               )}
               {step === 2 && (
@@ -196,58 +277,46 @@ export default function BookPage() {
               )}
               {step === 3 && (
                 <>
-                  <Clock className="h-5 w-5" /> Pick Date & Time
+                  <Calendar className="h-5 w-5" /> Select Service
                 </>
               )}
               {step === 4 && (
+                <>
+                  <Clock className="h-5 w-5" /> Pick Date & Time
+                </>
+              )}
+              {step === 5 && (
                 <>
                   <User className="h-5 w-5" /> Patient Information
                 </>
               )}
             </CardTitle>
             <CardDescription>
-              {step === 1 && "Choose the radiology service you need"}
-              {step === 2 && "Select a diagnostic center near you"}
-              {step === 3 && "Pick your preferred appointment slot"}
-              {step === 4 && "Provide patient details for the appointment"}
+              {step === 1 && "Choose your city"}
+              {step === 2 && "Select a diagnostic center in your city"}
+              {step === 3 && "Choose the radiology service you need"}
+              {step === 4 && "Pick your preferred appointment slot"}
+              {step === 5 && "Provide patient details for the appointment"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Step 1: Service Selection */}
+            {/* Step 1: City Selection */}
             {step === 1 && (
               <div className="space-y-4">
                 <RadioGroup
-                  value={bookingData.serviceId}
-                  onValueChange={(value) => setBookingData({ ...bookingData, serviceId: value, centerId: "" })}
+                  value={bookingData.city}
+                  onValueChange={(value) => setBookingData({ ...bookingData, city: value, centerId: "", serviceId: "" })}
                 >
-                  {services.map((service) => (
-                    <div
-                      key={service.id}
-                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50"
-                    >
-                      <RadioGroupItem value={service.id} id={service.id} />
+                  {availableCities.map((city) => (
+                    <div key={city} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
+                      <RadioGroupItem value={city} id={city} />
                       <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <Label htmlFor={service.id} className="text-base font-medium cursor-pointer">
-                              {service.name}
-                            </Label>
-                            <p className="text-sm text-gray-600 mt-1">{service.description}</p>
-                            <div className="flex items-center gap-4 mt-2">
-                              <Badge variant="secondary">{service.category}</Badge>
-                              <span className="text-sm text-gray-500 flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {service.duration} min
-                              </span>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center text-lg font-bold text-blue-600">
-                              <IndianRupee className="h-4 w-4" />
-                              {service.price.toLocaleString()}
-                            </div>
-                          </div>
-                        </div>
+                        <Label htmlFor={city} className="text-base font-medium cursor-pointer">
+                          {city}
+                        </Label>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {centers.filter(center => center.city === city).length} centers available
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -255,40 +324,92 @@ export default function BookPage() {
               </div>
             )}
 
-            {/* Step 2: Center Selection */}
+            {/* Step 2: Center Selection (filtered by city) */}
             {step === 2 && (
               <div className="space-y-4">
                 <RadioGroup
                   value={bookingData.centerId}
-                  onValueChange={(value) => setBookingData({ ...bookingData, centerId: value })}
+                  onValueChange={(value) => setBookingData({ ...bookingData, centerId: value, serviceId: "" })}
                 >
-                  {availableCenters.map((center) => (
-                    <div key={center.id} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                      <RadioGroupItem value={center.id} id={center.id} />
-                      <div className="flex-1">
-                        <Label htmlFor={center.id} className="text-base font-medium cursor-pointer">
-                          {center.name}
-                        </Label>
-                        <div className="mt-2 space-y-1">
-                          <p className="text-sm text-gray-600 flex items-center">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {center.address}, {center.city}
-                          </p>
-                          <div className="flex items-center gap-4">
-                            <span className="text-sm text-yellow-600">★ {center.rating}</span>
-                            <span className="text-sm text-gray-500">{center.phone}</span>
+                  {filteredCenters.length === 0 ? (
+                    <div className="text-sm text-gray-500">No centers available in this city.</div>
+                  ) : (
+                    filteredCenters.map((center) => (
+                      <div key={center.id} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
+                        <RadioGroupItem value={center.id.toString()} id={center.id.toString()} />
+                        <div className="flex-1">
+                          <Label htmlFor={center.id.toString()} className="text-base font-medium cursor-pointer">
+                            {center.name}
+                          </Label>
+                          <div className="mt-2 space-y-1">
+                            <p className="text-sm text-gray-600 flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {center.address}
+                            </p>
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm text-yellow-600">★ {center.rating}</span>
+                              <span className="text-sm text-gray-500">{center.phone}</span>
+                            </div>
+                            {center.area_hint && (
+                              <p className="text-xs text-gray-500">{center.area_hint}</p>
+                            )}
                           </div>
-                          <p className="text-xs text-gray-500">{center.timings}</p>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </RadioGroup>
               </div>
             )}
 
-            {/* Step 3: Date & Time Selection */}
+            {/* Step 3: Service Selection (filtered by center) */}
             {step === 3 && (
+              <div className="space-y-4">
+                <RadioGroup
+                  value={bookingData.serviceId}
+                  onValueChange={(value) => setBookingData({ ...bookingData, serviceId: value })}
+                >
+                  {filteredServices.length === 0 ? (
+                    <div className="text-sm text-gray-500">No services available for this center.</div>
+                  ) : (
+                    filteredServices.map((service) => (
+                      <div
+                        key={service.id}
+                        className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50"
+                      >
+                        <RadioGroupItem value={service.id.toString()} id={service.id.toString()} />
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <Label htmlFor={service.id.toString()} className="text-base font-medium cursor-pointer">
+                                {service.name}
+                              </Label>
+                              <p className="text-sm text-gray-600 mt-1">{service.description}</p>
+                              <div className="flex items-center gap-4 mt-2">
+                                <Badge variant="secondary">{service.category}</Badge>
+                                <span className="text-sm text-gray-500 flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {service.duration} min
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="flex items-center text-lg font-bold text-blue-600">
+                                <IndianRupee className="h-4 w-4" />
+                                {service.price.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </RadioGroup>
+              </div>
+            )}
+
+            {/* Step 4: Date & Time Selection */}
+            {step === 4 && (
               <div className="space-y-6">
                 <div>
                   <Label htmlFor="date" className="text-base font-medium">
@@ -322,8 +443,8 @@ export default function BookPage() {
               </div>
             )}
 
-            {/* Step 4: Patient Details */}
-            {step === 4 && (
+            {/* Step 5: Patient Details */}
+            {step === 5 && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -455,7 +576,7 @@ export default function BookPage() {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     Processing...
                   </>
-                ) : step === 4 ? (
+                ) : step === 5 ? (
                   "Confirm Booking"
                 ) : (
                   <>

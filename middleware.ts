@@ -1,35 +1,125 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { rateLimiter } from "./lib/rate-limit"
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
-  const ip = request.ip || request.headers.get("x-forwarded-for") || "unknown"
+  const { pathname } = request.nextUrl
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
-  // Apply rate limiting to API routes
-  if (request.nextUrl.pathname.startsWith("/api/")) {
-    const { allowed, remaining, resetTime } = await rateLimiter.checkAPILimit(ip)
-
-    if (!allowed) {
-      return new NextResponse(JSON.stringify({ error: "Too many requests" }), {
-        status: 429,
-        headers: {
-          "Content-Type": "application/json",
-          "X-RateLimit-Remaining": remaining.toString(),
-          "X-RateLimit-Reset": resetTime.toString(),
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
         },
-      })
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
     }
+  )
 
-    // Add rate limit headers to successful responses
-    const response = NextResponse.next()
-    response.headers.set("X-RateLimit-Remaining", remaining.toString())
-    response.headers.set("X-RateLimit-Reset", resetTime.toString())
-    return response
+  // Get the session
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // Admin route protection
+  if (pathname.startsWith("/admin")) {
+    // Allow access to admin login page
+    if (pathname === "/admin/login") {
+      // Redirect to dashboard if already logged in as admin
+      if (session) {
+        return NextResponse.redirect(new URL("/admin/dashboard", request.url))
+      }
+      return response
+    }
+    
+    // For other admin routes, check if user is authenticated
+    if (pathname.startsWith("/admin/dashboard") || pathname.startsWith("/admin/")) {
+      // Check for MVP admin cookie (fallback for existing JWT auth)
+      const mvpAdminCookie = request.cookies.get("mvp_admin")
+      if (!mvpAdminCookie && !session) {
+        return NextResponse.redirect(new URL("/admin/login", request.url))
+      }
+    }
   }
 
-  return NextResponse.next()
+  // Partner route protection
+  if (pathname.startsWith("/partner")) {
+    // Allow access to partner login page
+    if (pathname === "/partner/login") {
+      // Redirect to dashboard if already logged in as partner
+      if (session?.user) {
+        return NextResponse.redirect(new URL("/partner/dashboard", request.url))
+      }
+      return response
+    }
+    
+    // Allow access to onboarding for authenticated users
+    if (pathname === "/partner/onboarding") {
+      if (!session?.user) {
+        return NextResponse.redirect(new URL("/partner/login", request.url))
+      }
+      return response
+    }
+    
+    // Protect all other partner routes
+    if (!session?.user) {
+      return NextResponse.redirect(new URL("/partner/login", request.url))
+    }
+  }
+
+  // Admin API route protection
+  if (pathname.startsWith("/api/admin")) {
+    const mvpAdminCookie = request.cookies.get("mvp_admin")
+    if (!mvpAdminCookie && !session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+  }
+
+  return response
 }
 
 export const config = {
-  matcher: ["/api/:path*", "/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/admin/:path*", 
+    "/partner/:path*", 
+    "/api/admin/:path*",
+    "/((?!_next/static|_next/image|favicon.ico|api/auth).*)"],
 }
