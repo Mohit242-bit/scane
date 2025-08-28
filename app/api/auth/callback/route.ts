@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-// Safe supabase client initialization
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-if (!supabaseUrl || !supabaseKey) {
-  console.warn('Supabase environment variables not found')
-}
-
-const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -19,11 +12,6 @@ export async function GET(request: NextRequest) {
   const redirectTo = searchParams.get("redirectTo") || "/"
 
   console.log("Auth callback received:", { code: !!code, redirectTo })
-
-  if (!supabase) {
-    console.error("Supabase client not initialized")
-    return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent('Service configuration error')}`)
-  }
 
   if (code) {
     try {

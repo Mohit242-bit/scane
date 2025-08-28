@@ -14,9 +14,6 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 // On the server, prefer the service role key if available
 const clientKey = typeof window === 'undefined' ? SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY : SUPABASE_ANON_KEY
 
-// Create client only if we have valid credentials
-const supabase = SUPABASE_URL && clientKey 
-  ? createClient(SUPABASE_URL, clientKey)
-  : createClient('https://placeholder.supabase.co', 'placeholder-key') // Dummy client for build
+const supabase = createClient(SUPABASE_URL, clientKey)
 
 export default supabase
