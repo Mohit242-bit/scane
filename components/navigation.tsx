@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Menu, Calendar, User, Settings, LogOut, Shield } from "lucide-react"
+import { Menu, Calendar, User, Settings, LogOut, Shield, Building2 } from "lucide-react"
 import LocationSearchPlaceholder from "@/components/location-search-placeholder"
 import supabase from "@/lib/supabaseClient"
 
@@ -71,9 +71,10 @@ export default function Navigation() {
     { href: "/contact", label: "Contact" },
   ]
 
-  // Add partner panel for non-authenticated users or specific roles
+  // Add partner and admin links for non-authenticated users
   if (!user) {
-    navItems.push({ href: "/partner-us", label: "Partner With Us" })
+    navItems.push({ href: "/partner", label: "Partner" })
+    navItems.push({ href: "/admin/login", label: "Admin" })
   }
 
   return (

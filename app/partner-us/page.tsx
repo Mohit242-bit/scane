@@ -1,8 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@supabase/supabase-js"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
+import supabase from "@/lib/supabaseClient"
 import { 
   Chrome, 
   Building2, 
@@ -25,22 +25,52 @@ import {
 export default function PartnerUSPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [showEmailSignup, setShowEmailSignup] = useState(false)
-  const [email, setEmail] = useState("")
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    fullName: "",
+    phone: "",
+    businessName: ""
+  })
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userEmail, setUserEmail] = useState("")
   const router = useRouter()
   const { toast } = useToast()
+  
+  // Check if user is already logged in on mount
+  useEffect(() => {
+    checkAuth()
+  }, [])
+  
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      setIsLoggedIn(true)
+      setUserEmail(user.email || "")
+    }
+  }
 
-  // Create Supabase client
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  // Use shared Supabase client (same as working partner login)
 
-  const handleEmailSignup = async (e: React.FormEvent) => {
+  const handlePartnerSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!email) {
-      setError("Please enter your email address")
+    const { email, password, confirmPassword, fullName, phone, businessName } = formData
+    
+    // Validation
+    if (!email || !password || !confirmPassword || !fullName || !phone) {
+      setError("Please fill in all required fields")
+      return
+    }
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long")
       return
     }
 
@@ -48,97 +78,94 @@ export default function PartnerUSPage() {
       setIsLoading(true)
       setError("")
       
-      // Generate a temporary password for the user
-      const tempPassword = Math.random().toString(36).slice(-12) + "Temp123!"
+      console.log("Creating partner account:", email)
       
-      console.log("Creating account with email:", email)
-      
-      const { data, error } = await supabase.auth.signUp({
+      // Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        password: tempPassword,
+        password,
         options: {
           data: {
-            role: 'partner',
-            signup_method: 'partner_us_email',
-            full_name: email.split('@')[0] // Use email prefix as temporary name
+            full_name: fullName,
+            phone: phone,
+            role: 'partner'
           },
-          emailRedirectTo: `${window.location.origin}/partner/onboarding`
+          emailRedirectTo: `${window.location.origin}/partner-us`
         }
       })
       
-      if (error) {
-        console.error("Email signup error:", error)
-        setError(error.message)
+      if (authError) {
+        console.error("Auth signup error:", authError)
+        setError(authError.message)
         return
       }
       
-      if (data?.user && !data.user.email_confirmed_at) {
+      if (!authData.user) {
+        setError("Failed to create user account")
+        return
+      }
+      
+      console.log("User created:", authData.user.id)
+      
+      // Create user in public.users table
+      const { error: userError } = await supabase
+        .from("users")
+        .insert({
+          id: authData.user.id,
+          email: email,
+          full_name: fullName,
+          phone: phone,
+          role: "partner",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+      
+      if (userError) {
+        console.error("Error creating user profile:", userError)
+        // Continue anyway, user can complete profile later
+      }
+      
+      // Create initial partner entry
+      const { error: partnerError } = await supabase
+        .from("partners")
+        .insert({
+          user_id: authData.user.id,
+          business_name: businessName || `${fullName}'s Practice`,
+          business_email: email,
+          business_phone: phone,
+          status: "pending",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+      
+      if (partnerError) {
+        console.error("Error creating partner profile:", partnerError)
+        // Continue anyway
+      }
+      
+      if (authData.user.email_confirmed_at || process.env.NODE_ENV === 'development') {
+        // Email confirmed or dev mode, log them in
+        setIsLoggedIn(true)
+        setUserEmail(email)
+        toast({
+          title: "Account Created!",
+          description: "Your partner account has been created successfully."
+        })
+      } else {
         toast({
           title: "Check your email",
           description: "We've sent you a confirmation link. Please check your email and click the link to continue."
         })
-      } else if (data?.user) {
-        // User is already confirmed, redirect to onboarding
-        router.push("/partner/onboarding")
       }
       
-    } catch (error) {
-      console.error("Email signup error:", error)
-      setError("An error occurred during signup. Please try again.")
+    } catch (error: any) {
+      console.error("Signup error:", error)
+      setError(error.message || "An error occurred during signup. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleGoogleSignup = async () => {
-    try {
-      setIsLoading(true)
-      setError("")
-      
-      console.log("Environment check:")
-      console.log("SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
-      console.log("SUPABASE_KEY:", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "SET" : "MISSING")
-      
-      const redirectTo = `${window.location.origin}/api/auth/callback?redirectTo=/partner/onboarding`
-      console.log("OAuth redirect URL:", redirectTo)
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
-        }
-      })
-      
-      console.log("OAuth response:", { data, error })
-      
-      if (error) {
-        console.error("OAuth error details:", error)
-        setError(`Google signup is currently unavailable. Please use email signup instead.`)
-        setShowEmailSignup(true)
-        return
-      }
-      
-      if (data?.url) {
-        console.log("Redirecting to Google OAuth URL:", data.url)
-        // The redirect should happen automatically
-      } else {
-        console.error("No OAuth URL returned")
-        setError("Google signup is currently unavailable. Please use email signup instead.")
-        setShowEmailSignup(true)
-      }
-      
-    } catch (error) {
-      console.error("Google signup error:", error)
-      setError("Google signup is currently unavailable. Please use email signup instead.")
-      setShowEmailSignup(true)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const benefits = [
     {
@@ -257,74 +284,149 @@ export default function PartnerUSPage() {
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
-
-                <div className="space-y-4">
-                  <Button
-                    onClick={handleGoogleSignup}
-                    className="w-full h-12 text-base bg-[#0AA1A7] hover:bg-[#089098]"
-                    disabled={isLoading}
-                  >
-                    <Chrome className="mr-3 h-5 w-5" />
-                    {isLoading ? "Starting..." : "Sign up with Google"}
-                  </Button>
-
-                  {!showEmailSignup && (
-                    <div className="text-center">
-                      <p className="text-sm text-[#5B6B7A] mb-2">
-                        Or if Google signup isn't working:
-                      </p>
+                
+                {/* Show success state if logged in */}
+                {isLoggedIn && (
+                  <div className="space-y-4">
+                    <Alert className="border-green-200 bg-green-50">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <AlertDescription className="text-green-800">
+                        You're logged in as: <strong>{userEmail}</strong>
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="space-y-3">
                       <Button
-                        variant="outline"
-                        onClick={() => setShowEmailSignup(true)}
-                        className="w-full"
-                        disabled={isLoading}
+                        onClick={() => router.push("/partner/details")}
+                        className="w-full bg-[#0AA1A7] hover:bg-[#089098]"
                       >
-                        Sign up with Email Instead
+                        <Building2 className="mr-2 h-4 w-4" />
+                        Complete Partner Registration
+                      </Button>
+                      
+                      <Button
+                        onClick={() => router.push("/partner/dashboard")}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Go to Partner Dashboard
+                      </Button>
+                      
+                      <Button
+                        onClick={async () => {
+                          await supabase.auth.signOut()
+                          setIsLoggedIn(false)
+                          setUserEmail("")
+                        }}
+                        variant="ghost"
+                        className="w-full"
+                      >
+                        Sign Out
                       </Button>
                     </div>
-                  )}
-
-                  {showEmailSignup && (
-                    <form onSubmit={handleEmailSignup} className="space-y-4">
+                  </div>
+                )}
+                
+                {/* Show signup form if not logged in */}
+                {!isLoggedIn && (
+                  <form onSubmit={handlePartnerSignup} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
+                        <Label htmlFor="fullName">Full Name *</Label>
+                        <Input
+                          id="fullName"
+                          type="text"
+                          value={formData.fullName}
+                          onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                          placeholder="Your full name"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email *</Label>
                         <Input
                           id="email"
                           type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
                           placeholder="your@email.com"
                           required
                         />
                       </div>
-                      <Button
-                        type="submit"
-                        className="w-full h-12 text-base bg-[#0AA1A7] hover:bg-[#089098]"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? "Creating Account..." : "Create Partner Account"}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setShowEmailSignup(false)}
-                        className="w-full"
-                        disabled={isLoading}
-                      >
-                        Back to Google Signup
-                      </Button>
-                    </form>
-                  )}
-
-                  {!showEmailSignup && (
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Password *</Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          value={formData.password}
+                          onChange={(e) => setFormData({...formData, password: e.target.value})}
+                          placeholder="At least 6 characters"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={formData.confirmPassword}
+                          onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                          placeholder="Confirm password"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number *</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                          placeholder="+91 98765 43210"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="businessName">Business Name (Optional)</Label>
+                        <Input
+                          id="businessName"
+                          type="text"
+                          value={formData.businessName}
+                          onChange={(e) => setFormData({...formData, businessName: e.target.value})}
+                          placeholder="Medical Center Name"
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button
+                      type="submit"
+                      className="w-full h-12 text-base bg-[#0AA1A7] hover:bg-[#089098]"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Creating Account..." : "Create Partner Account"}
+                    </Button>
+                    
                     <div className="text-center">
                       <p className="text-sm text-[#5B6B7A]">
-                        Sign up with your Google account and we'll guide you through
-                        setting up your medical center profile.
+                        Already have an account?{" "}
+                        <Button
+                          variant="link"
+                          onClick={() => router.push("/partner/login")}
+                          className="p-0 text-[#0AA1A7] hover:underline"
+                        >
+                          Sign in here
+                        </Button>
                       </p>
                     </div>
-                  )}
-                </div>
+                  </form>
+                )}
+                )}
 
                 <Separator />
 
@@ -334,7 +436,7 @@ export default function PartnerUSPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-[#5B6B7A]">
                       <div className="w-6 h-6 rounded-full bg-[#0AA1A7] text-white flex items-center justify-center text-xs font-semibold">1</div>
-                      <span>Sign up with Google</span>
+                      <span>Sign up with email & details</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-[#5B6B7A]">
                       <div className="w-6 h-6 rounded-full bg-[#0AA1A7] text-white flex items-center justify-center text-xs font-semibold">2</div>

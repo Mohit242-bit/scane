@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
       try {
         const response = await fetch("/api/admin/mvp-verify")
         if (response.ok) {
-          router.push("/admin/dashboard")
+          router.push("/admin")
         }
       } catch (err) {
         // Not logged in, stay on login page
@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
       })
 
       if (response.ok) {
-        router.push("/admin/dashboard")
+        router.push("/admin")
         router.refresh()
       } else {
         const data = await response.json()
@@ -69,6 +69,11 @@ export default function AdminLoginPage() {
           <CardDescription>
             Sign in to access the admin dashboard
           </CardDescription>
+          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded mt-2">
+            <strong>Demo Credentials:</strong><br />
+            Email: admin@scanezy.com<br />
+            Password: admin123
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -111,19 +116,6 @@ export default function AdminLoginPage() {
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Sign in"}
             </Button>
           </form>
-          <div className="mt-6 flex flex-col items-center">
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full flex items-center justify-center gap-2"
-              onClick={() => {
-                window.location.href = "/api/admin/mvp-login?redirectTo=/admin/dashboard"
-              }}
-              disabled={loading}
-            >
-              <Chrome className="h-5 w-5" /> Sign in with Google
-            </Button>
-          </div>
           {error && (
             <Alert variant="destructive" className="mt-4">
               <AlertTriangle className="h-4 w-4" />

@@ -1,11 +1,11 @@
 import supabase from "./supabaseClient"
 
 export interface User {
-  id: string
-  email?: string | null
-  name?: string | null
-  phone?: string | null
-  role?: string | null
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  phone?: string | null;
+  role?: string | null;
 }
 
 // Get current user

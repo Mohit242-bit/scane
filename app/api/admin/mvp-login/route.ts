@@ -1,36 +1,50 @@
-
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import jwt from "jsonwebtoken"
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Dummy admin credentials (in production, these should be in environment variables)
+const ADMIN_CREDENTIALS = {
+  email: 'admin@scanezy.com',
+  password: 'admin123'
+}
 
-export async function GET(req: NextRequest) {
-  // Get the redirect_to parameter from the query string
-  const { searchParams } = new URL(req.url)
-  const redirectTo = searchParams.get('redirect_to') || '/admin/dashboard'
-  
-  // Construct the callback URL with the redirect destination
-  const callbackUrl = `${process.env.GOOGLE_OAUTH_CALLBACK_URL}?redirectTo=${encodeURIComponent(redirectTo)}`
-  
-  console.log("Redirect URI sent to Google:", callbackUrl);
-  console.log("Final redirect destination:", redirectTo);
-  
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: callbackUrl,
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent'
-      }
+export async function POST(req: NextRequest) {
+  try {
+    const { username, password } = await req.json()
+    
+    // Simple credential validation
+    if (username === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+      // Create JWT token
+      const token = jwt.sign(
+        { 
+          sub: ADMIN_CREDENTIALS.email,
+          role: 'admin',
+          iat: Math.floor(Date.now() / 1000)
+        },
+        process.env.ADMIN_MVP_SECRET || 'fallback-secret',
+        { expiresIn: '7d' }
+      )
+      
+      // Set HTTP-only cookie
+      const response = NextResponse.json({ success: true, user: ADMIN_CREDENTIALS.email })
+      response.cookies.set('mvp_admin', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 // 7 days
+      })
+      
+      return response
+    } else {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
-  })
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error) {
+    console.error('Admin login error:', error)
+    return NextResponse.json({ error: 'Login failed' }, { status: 500 })
   }
-  // Redirect user to Google OAuth URL
-  return NextResponse.redirect(data.url)
+}
+
+// Keep the Google OAuth flow as backup (in case it's needed later)
+export async function GET(req: NextRequest) {
+  // For now, redirect to the simple login form
+  return NextResponse.redirect(new URL('/admin/login', req.url))
 }

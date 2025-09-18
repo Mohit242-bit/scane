@@ -113,7 +113,7 @@ export default function PartnerAuthPage() {
 
       // Check if partner profile exists
       const { data: partnerProfile, error: profileError } = await supabase
-        .from("partner_profiles")
+        .from("partners")
         .select("*")
         .eq("user_id", authData.user.id)
         .single()
@@ -125,9 +125,9 @@ export default function PartnerAuthPage() {
         return
       }
 
-      if (partnerProfile && !partnerProfile.onboarding_completed) {
-        // Profile exists but onboarding not completed
-        console.log("Partner profile exists but onboarding not completed")
+      if (partnerProfile && partnerProfile.status === "pending") {
+        // Profile exists but not approved yet, still needs onboarding
+        console.log("Partner profile exists but status is pending")
         router.push("/partner/onboarding")
         return
       }
@@ -221,15 +221,15 @@ export default function PartnerAuthPage() {
 
       // Create initial partner profile
       const { error: profileError } = await supabase
-        .from("partner_profiles")
+        .from("partners")
         .insert({
           user_id: authData.user.id,
-          google_email: email,
-          full_name: fullName,
-          phone: phone,
-          business_name: businessName || null,
-          onboarding_completed: false,
-          verification_status: "pending",
+          business_name: businessName || `${fullName}'s Practice`,
+          business_email: email,
+          business_phone: phone,
+          address: null,
+          city: null,
+          status: "pending",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })

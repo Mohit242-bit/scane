@@ -1,11 +1,40 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Star, Shield, Users } from "lucide-react"
+import { Calendar, Clock, MapPin, Star, Shield, Users, Upload, FileText, Navigation } from "lucide-react"
+import LocationHandler from "@/components/location-handler"
+import PrescriptionUpload from "@/components/prescription-upload"
+import { useRouter } from "next/navigation"
 
 export default function HomePage() {
+  const router = useRouter()
+  const [userLocation, setUserLocation] = useState<{ city: string; coordinates?: { lat: number; lng: number } } | null>(null)
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false)
+
+  const handleLocationSet = (location: { city: string; coordinates?: { lat: number; lng: number } }) => {
+    setUserLocation(location)
+    setShowLocationPrompt(false)
+  }
+
+  const handleTestsSelected = (tests: any[]) => {
+    // Navigate to booking page with selected tests
+    const testIds = tests.map(t => t.id).join(',')
+    router.push(`/book?tests=${testIds}&city=${userLocation?.city || ''}`)
+  }
+
+  const handleBookAppointment = () => {
+    if (!userLocation) {
+      setShowLocationPrompt(true)
+    } else {
+      router.push('/book')
+    }
+  }
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -20,16 +49,48 @@ export default function HomePage() {
                 Fast, convenient, and reliable diagnostic services. Book your X-ray, CT scan, MRI, and more with just a
                 few clicks.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" asChild>
-                  <Link href="/book">
-                    <Calendar className="w-5 h-5 mr-2" />
-                    Book Appointment
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" asChild>
-                  <Link href="/services">View Services</Link>
-                </Button>
+              
+              {/* Enhanced CTA Section */}
+              <div className="space-y-4">
+                {/* Location Display */}
+                {userLocation && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600 bg-white/80 rounded-full px-4 py-2 w-fit">
+                    <MapPin className="h-4 w-4" />
+                    <span>Serving in {userLocation.city}</span>
+                  </div>
+                )}
+                
+                {/* Main CTAs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <LocationHandler 
+                    onLocationSet={handleLocationSet}
+                    trigger={
+                      <Button size="lg" className="w-full">
+                        <Calendar className="w-5 h-5 mr-2" />
+                        Book Appointment
+                      </Button>
+                    }
+                  />
+                  
+                  <PrescriptionUpload 
+                    onTestsSelected={handleTestsSelected}
+                    trigger={
+                      <Button variant="outline" size="lg" className="w-full">
+                        <Upload className="w-5 h-5 mr-2" />
+                        Upload Prescription
+                      </Button>
+                    }
+                  />
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button variant="ghost" asChild>
+                    <Link href="/services">Browse All Tests</Link>
+                  </Button>
+                  <Button variant="ghost" asChild>
+                    <Link href="/centers">Find Centers</Link>
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="relative">

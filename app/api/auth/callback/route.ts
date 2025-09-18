@@ -9,9 +9,48 @@ const supabase = createClient(
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
-  const redirectTo = searchParams.get("redirectTo") || "/"
+  const error = searchParams.get("error")
+  const errorDescription = searchParams.get("error_description") 
+  
+  // Check for redirectTo in query params first
+  let redirectTo = searchParams.get("redirectTo") || "/"
+  
+  console.log("Auth callback received:", { 
+    hasCode: !!code,
+    redirectTo, 
+    error, 
+    errorDescription,
+    allParams: Object.fromEntries(searchParams.entries()),
+    url: request.url,
+    timestamp: new Date().toISOString()
+  })
+  
+  // IMPORTANT: If no code and no error, check if user is already authenticated
+  // This handles the case where callback is hit after successful OAuth
+  if (!code && !error) {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (session) {
+      console.log("No code but session exists - user already authenticated, redirecting home")
+      // User is already logged in, just redirect them home or to partner page
+      const referrer = request.headers.get('referer')
+      if (referrer?.includes('/partner')) {
+        return NextResponse.redirect(`${origin}/partner-us`)
+      }
+      return NextResponse.redirect(origin)
+    }
+    
+    // If truly no code and no session, show error
+    console.log("No code and no session - showing error")
+    return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent('No authorization code provided. This URL should only be accessed via OAuth redirect.')}`)
+  }
 
-  console.log("Auth callback received:", { code: !!code, redirectTo })
+  // Handle OAuth errors from the provider
+  if (error) {
+    console.error("OAuth provider error:", { error, errorDescription })
+    const errorMessage = errorDescription || error || 'OAuth authentication failed'
+    return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent(errorMessage)}`)
+  }
 
   if (code) {
     try {
@@ -48,6 +87,16 @@ export async function GET(request: NextRequest) {
         if (userError && userError.code === "PGRST116") {
           // User doesn't exist in public.users table, create them
           console.log("Creating user in public.users table")
+          
+          // Check if this is a partner signup by checking referrer or session data
+          const referrer = request.headers.get('referer')
+          const isPartnerSignup = referrer?.includes('/partner-us') || referrer?.includes('/partner')
+          const userRole = redirectTo.includes("/admin") ? "admin" : 
+                          (isPartnerSignup || redirectTo.includes("/partner")) ? "partner" : 
+                          "customer"
+          
+          console.log("Assigning role:", userRole, "(referrer:", referrer, ")")
+          
           const { error: insertError } = await supabase
             .from("users")
             .insert({
@@ -55,7 +104,7 @@ export async function GET(request: NextRequest) {
               email: user.email!,
               full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0],
               phone: user.user_metadata?.phone || null,
-              role: redirectTo.includes("/admin") ? "admin" : redirectTo.includes("/partner") ? "partner" : "customer",
+              role: userRole,
               avatar_url: user.user_metadata?.avatar_url || null,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
@@ -93,27 +142,34 @@ export async function GET(request: NextRequest) {
       // For partner users
       if (redirectTo.includes("/partner")) {
         
-        // Check if partner profile exists
+        // Check if partner profile exists by querying database directly
         try {
-          const profileResponse = await fetch(`${origin}/api/partner/profile`, {
-            headers: {
-              'Authorization': `Bearer ${data.session?.access_token}`
-            }
-          })
+          const { data: partnerProfile, error: profileError } = await supabase
+            .from("partners")
+            .select("*")
+            .eq("user_id", user.id)
+            .single()
           
-          console.log("Profile check response:", profileResponse.status)
+          console.log("Partner profile check:", { hasProfile: !!partnerProfile, error: profileError?.code })
           
-          if (profileResponse.status === 404) {
-            // First-time partner - redirect to onboarding
-            console.log("Redirecting to onboarding")
+          if (profileError && profileError.code === "PGRST116") {
+            // No partner profile exists - redirect to onboarding
+            console.log("No partner profile found, redirecting to onboarding")
+            
+            // Simple redirect to onboarding
             return NextResponse.redirect(`${origin}/partner/onboarding`)
-          } else if (profileResponse.ok) {
-            // Existing partner - redirect to dashboard
-            console.log("Redirecting to dashboard")
-            return NextResponse.redirect(`${origin}/partner/dashboard`)
+          } else if (!profileError && partnerProfile) {
+            // Partner profile exists - check if ready for dashboard
+            if (partnerProfile.status === 'approved') {
+              console.log("Partner approved, redirecting to dashboard")
+              return NextResponse.redirect(`${origin}/partner/dashboard`)
+            } else {
+              console.log("Partner profile exists but not approved, redirecting to onboarding")
+              return NextResponse.redirect(`${origin}/partner/onboarding`)
+            }
           } else {
             // Some other error, go to onboarding
-            console.log("Profile check failed, redirecting to onboarding")
+            console.log("Partner profile check failed, redirecting to onboarding")
             return NextResponse.redirect(`${origin}/partner/onboarding`)
           }
         } catch (profileError) {
@@ -133,6 +189,6 @@ export async function GET(request: NextRequest) {
   }
 
   console.log("No code provided, redirecting to error")
-  // If there's an error or no code, redirect to login
-  return NextResponse.redirect(`${origin}/auth/error?message=No authorization code`)
+  // If there's no code and no error, this might be a direct access
+  return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent('No authorization code provided. This URL should only be accessed via OAuth redirect.')}`)
 }

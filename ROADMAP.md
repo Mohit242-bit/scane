@@ -1,0 +1,85 @@
+
+# MedEzy Panels — Developer Todo List
+
+- [x] My Bookings: List of upcoming & past bookings with status (Pending, Confirmed, Completed, Cancelled)
+- [x] Booking Details: Slot info, center area (masked until confirm), price, prep instructions, reschedule/cancel option
+- [x] Reports & Documents: Secure download of PDF reports, invoices
+- [x] Payments: View invoice, download GST bill, retry failed payment
+- [x] Profile: Phone/email verification, emergency contacts (partial)
+- [x] Support: Raise ticket or start WhatsApp/Chat with support (partial)
+- [x] Notifications: Booking confirmed, reminders, report ready
+- [x] Permissions: View/modify own bookings
+- [x] Permissions: Upload prescription
+- [x] Permissions: Download invoices/reports
+
+- [x] Dashboard Overview: Bookings per day/week/month
+- [x] Dashboard Overview: Revenue & fee collected
+- [x] Dashboard Overview: Top cities & services
+- [x] Service Management: CRUD services (MRI, CT, PET, etc.)
+- [x] Service Management: Pricing templates, prep instructions
+- [x] Center Management: Onboard new centers/hospitals
+- [x] Center Management: Verify docs, assign subscription tier (Basic/Pro)
+- [x] Center Management: Manage settlement accounts
+- [x] Slot Management: Bulk slot upload/import (CSV/API)
+- [x] Slot Management: View utilization by center
+- [x] Booking Management: Lookup by ID/user
+- [x] Booking Management: Override status, refunds, reschedules
+- [x] Content Management: Banners, FAQs, city/service landing pages, blog (partial)
+- [x] Finance & Settlements: Track fees collected
+- [x] Finance & Settlements: Razorpay Route payouts
+- [x] Finance & Settlements: Generate partner settlement reports
+- [x] Analytics: Conversion funnel
+- [x] Analytics: No-show rate, slot hold vs. book rate
+- [x] Analytics: Partner SLA (time to confirm, cancellation %)
+- [x] User Management: CRUD users (patients, support agents, partners)
+- [x] User Management: Roles & permissions
+- [x] Permissions: Super Admin → all
+- [x] Permissions: Ops Manager → bookings, slots, partner mgmt
+- [x] Permissions: Finance → settlements, payouts
+- [x] Permissions: Marketing → CMS, campaigns
+
+- [x] Today’s Bookings: List of confirmed bookings with masked PII (tokenized phone/email)
+- [x] Booking Actions: Confirm, reschedule, cancel, mark as completed
+- [x] Slot Management: Upload slot availability (manual entry or file upload)
+- [x] Slot Management: Block unavailable slots
+- [x] Reports: Upload scan reports (PDFs/images) linked to booking ID
+- [x] Settlement Dashboard: Track revenue from MedEzy bookings
+- [x] Settlement Dashboard: Download monthly settlement invoices
+- [x] Performance Metrics: SLA scorecard (avg confirm time, cancellations, rating)
+- [x] Support/Chat: Direct contact with MedEzy support for escalations (partial)
+- [x] Permissions: View/edit own center bookings
+- [x] Permissions: Upload reports
+- [x] Permissions: Manage availability
+- [x] Permissions: Finance view restricted to that center
+
+- [x] Booking Search: By booking ID, user phone, or partner center
+- [x] Action Panel: Reschedule (pick new slot)
+- [x] Action Panel: Cancel booking + trigger refund
+- [x] Action Panel: Apply goodwill credits (partial)
+- [x] User Messaging: Send WhatsApp/email/SMS updates manually (partial)
+- [x] Partner Coordination: Message center to confirm urgent cases (partial)
+- [x] Refund Manager: Initiate Razorpay refund, update status
+- [x] Escalations: Flag high-priority cases for Admin intervention (partial)
+- [x] Ticketing: Auto-generate ticket on each support request, assign status (partial)
+- [x] Permissions: View all bookings
+- [x] Permissions: Edit status only with audit logs
+- [x] Permissions: Issue partial/full refunds (with admin override if >₹X amount)
+
+- [x] Auth & Roles: Phone OTP (Firebase/Auth0)
+- [x] Auth & Roles: RBAC: Admin, Partner, Support, Customer
+- [x] Notifications: Event-based triggers (Booking Confirmed, Reminder, Report Ready, Refund Issued)
+- [x] Notifications: Multi-channel: WhatsApp (Interakt/Gupshup), Email (SES/Postmark), SMS (DLT)
+- [x] File Storage: S3 or Cloudflare R2 for reports/invoices (partial)
+- [x] File Storage: Presigned URLs with expiry for secure access (partial)
+- [x] Audit Logs: Track all admin/support/partner actions (partial)
+- [x] Audit Logs: Immutable storage for compliance (partial)
+- [x] Analytics Events: user_signed_up
+- [x] Analytics Events: service_viewed
+- [x] Analytics Events: slot_checked
+- [x] Analytics Events: booking_initiated
+- [x] Analytics Events: payment_succeeded
+- [x] Analytics Events: booking_confirmed
+- [x] Analytics Events: document_uploaded
+- [x] Analytics Events: booking_completed
+- [x] Analytics Events: refund_processed
+- [x] Analytics Events: nps_submitted

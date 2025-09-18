@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     // Step 2: Create partner profile
     const { data: existingProfile, error: profileCheckError } = await supabase
-      .from("partner_profiles")
+      .from("partners")
       .select("id")
       .eq("user_id", userId)
       .single()
@@ -88,15 +88,15 @@ export async function POST(req: NextRequest) {
     if (!existingProfile) {
       // Create partner profile
       const { error: profileError } = await supabase
-        .from("partner_profiles")
+        .from("partners")
         .insert({
           user_id: userId,
-          google_email: email,
-          full_name: fullName,
-          phone: phone,
-          business_name: businessName || null,
-          onboarding_completed: false,
-          verification_status: "pending",
+          business_name: businessName || `${fullName}'s Practice`,
+          business_email: email,
+          business_phone: phone,
+          address: null,
+          city: null,
+          status: "pending",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -109,11 +109,10 @@ export async function POST(req: NextRequest) {
     } else {
       // Update existing profile
       const { error: updateProfileError } = await supabase
-        .from("partner_profiles")
+        .from("partners")
         .update({
-          full_name: fullName,
-          phone: phone,
-          business_name: businessName || null,
+          business_name: businessName || `${fullName}'s Practice`,
+          business_phone: phone,
           updated_at: new Date().toISOString()
         })
         .eq("user_id", userId)

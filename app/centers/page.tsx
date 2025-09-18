@@ -1,16 +1,65 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Phone, Clock, Star, Search } from "lucide-react"
+import { MapPin, Phone, Clock, Star, Search, Users, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { centers, services } from "@/lib/data"
+
+interface Center {
+  id: number
+  name: string
+  address: string
+  city: string
+  area_hint: string
+  phone: string
+  email?: string
+  operating_hours: any
+  is_active: boolean
+  rating?: number
+  stats?: {
+    totalBookings: number
+    registeredUsersCount: number
+    pendingBookings: number
+    completedBookings: number
+  }
+  partners?: {
+    name: string
+    email: string
+  }
+}
 
 export default function CentersPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [centers, setCenters] = useState<Center[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch centers data from Supabase
+  useEffect(() => {
+    async function fetchCenters() {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/admin/centers')
+        const data = await response.json()
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch centers')
+        }
+        
+        setCenters(data.centers || [])
+      } catch (err) {
+        console.error('Error fetching centers:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load centers')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchCenters()
+  }, [])
 
   const filteredCenters = useMemo(() => {
     return centers.filter(
@@ -19,12 +68,7 @@ export default function CentersPage() {
         center.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
         center.area_hint.toLowerCase().includes(searchTerm.toLowerCase()),
     )
-  }, [searchTerm])
-
-  const getServiceName = (serviceId: string) => {
-    const service = services.find((s) => s.id === serviceId)
-    return service ? service.name : serviceId
-  }
+  }, [searchTerm, centers])
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -53,71 +97,128 @@ export default function CentersPage() {
           </div>
         </div>
 
-        {/* Centers Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredCenters.map((center) => (
-            <Card key={center.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-xl">{center.name}</CardTitle>
-                    <CardDescription className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {center.area_hint}
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center bg-yellow-50 px-2 py-1 rounded">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                    <span className="font-medium">{center.rating}</span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-start">
-                    <MapPin className="h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-600">
-                      {center.address}, {center.city}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <Phone className="h-4 w-4 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">{center.phone}</span>
-                  </div>
-                  <div className="flex items-start">
-                    <Clock className="h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-600">{center.timings}</span>
-                  </div>
-                </div>
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[#0AA1A7]" />
+            <span className="ml-2 text-gray-600">Loading centers...</span>
+          </div>
+        )}
 
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Available Services</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {center.services.slice(0, 4).map((serviceId) => (
-                      <Badge key={serviceId} variant="outline" className="text-xs">
-                        {services.find((s) => s.id === serviceId)?.category || serviceId}
-                      </Badge>
-                    ))}
-                    {center.services.length > 4 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{center.services.length - 4} more
-                      </Badge>
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <h3 className="text-lg font-medium text-red-800 mb-2">Error Loading Centers</h3>
+            <p className="text-red-600">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4"
+              variant="outline"
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {/* Centers Grid */}
+        {!loading && !error && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {filteredCenters.map((center) => (
+              <Card key={center.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-xl">{center.name}</CardTitle>
+                      <CardDescription className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {center.area_hint}
+                      </CardDescription>
+                      {!center.is_active && (
+                        <Badge variant="secondary">Inactive</Badge>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center bg-yellow-50 px-2 py-1 rounded">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                        <span className="font-medium">{center.rating || '4.5'}</span>
+                      </div>
+                      {center.stats && (
+                        <div className="flex items-center bg-blue-50 px-2 py-1 rounded">
+                          <Users className="h-4 w-4 text-blue-600 mr-1" />
+                          <span className="text-sm font-medium text-blue-700">
+                            {center.stats.registeredUsersCount} users
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-start">
+                      <MapPin className="h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-gray-600">
+                        {center.address}, {center.city}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <Phone className="h-4 w-4 text-gray-400 mr-2" />
+                      <span className="text-sm text-gray-600">{center.phone}</span>
+                    </div>
+                    {center.operating_hours && (
+                      <div className="flex items-start">
+                        <Clock className="h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-gray-600">
+                          {typeof center.operating_hours === 'string' 
+                            ? center.operating_hours 
+                            : '9:00 AM - 6:00 PM'}
+                        </span>
+                      </div>
+                    )}
+                    {center.partners && (
+                      <div className="text-sm text-gray-500">
+                        Operated by: {center.partners.name}
+                      </div>
                     )}
                   </div>
-                </div>
 
-                <div className="flex gap-2 pt-2">
-                  <Button asChild className="flex-1">
-                    <Link href={`/book?center=${center.id}`}>Book Appointment</Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link href={`/centers/${center.id}`}>View Details</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  {center.stats && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <h4 className="font-medium text-gray-900 mb-2 text-sm">Center Statistics</h4>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-gray-500">Total Bookings:</span>
+                          <span className="ml-1 font-medium">{center.stats.totalBookings}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Registered Users:</span>
+                          <span className="ml-1 font-medium">{center.stats.registeredUsersCount}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Pending:</span>
+                          <span className="ml-1 font-medium">{center.stats.pendingBookings}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Completed:</span>
+                          <span className="ml-1 font-medium">{center.stats.completedBookings}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-2">
+                    <Button asChild className="flex-1">
+                      <Link href={`/book?center=${center.id}`}>Book Appointment</Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                      <Link href={`/centers/${center.id}`}>View Details</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {filteredCenters.length === 0 && (
           <div className="text-center py-12">

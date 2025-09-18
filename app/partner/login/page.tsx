@@ -26,7 +26,8 @@ export default function PartnerLoginPage() {
     businessEmail: "",
     businessPhone: "",
     address: "",
-    city: ""
+    city: "",
+    password: ""
   })
   const [error, setError] = useState("")
   const router = useRouter()
@@ -137,10 +138,14 @@ export default function PartnerLoginPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const { name, email, phone, businessName, businessEmail, businessPhone, address, city } = signUpData
+    const { name, email, phone, businessName, businessEmail, businessPhone, address, city, password } = signUpData
     
-    if (!name || !email || !phone || !businessName || !businessEmail || !address || !city) {
+    if (!name || !email || !phone || !businessName || !businessEmail || !address || !city || !password) {
       setError("Please fill in all required fields")
+      return
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long")
       return
     }
 
@@ -148,10 +153,10 @@ export default function PartnerLoginPage() {
       setIsLoading(true)
       setError("")
 
-      // Create auth user first
+      // Create auth user with real password
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        password: "partner123", // Default password, user should change this
+        password,
         options: {
           data: {
             full_name: name,
@@ -171,6 +176,28 @@ export default function PartnerLoginPage() {
         return
       }
 
+      // Insert partner profile in Supabase
+      const { error: profileError } = await supabase
+        .from("partner_profiles")
+        .insert({
+          user_id: authData.user.id,
+          google_email: email,
+          full_name: name,
+          phone: phone,
+          business_name: businessName,
+          business_registration_number: "",
+          gst_number: "",
+          pan_number: "",
+          bank_account_details: {},
+          onboarding_completed: false,
+          verification_status: "pending"
+        });
+
+      if (profileError) {
+        setError("Failed to create partner profile: " + profileError.message);
+        return;
+      }
+
       toast({
         title: "Account created successfully",
         description: "Please check your email to verify your account, then complete your partner onboarding."
@@ -185,7 +212,8 @@ export default function PartnerLoginPage() {
         businessEmail: "",
         businessPhone: "",
         address: "",
-        city: ""
+        city: "",
+        password: ""
       })
     } catch (error) {
       console.error("Sign up error:", error)
@@ -314,6 +342,17 @@ export default function PartnerLoginPage() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="password">Password *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={signUpData.password}
+                  onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
+                  placeholder="Enter a password"
+                  required
+                />
+              </div>
               <div className="flex gap-3">
                 <Button
                   type="submit"
