@@ -42,9 +42,9 @@ export async function GET(request: NextRequest) {
       // Fetch specific partner details with related data
       const [
         { data: partner, error: partnerError },
-        { data: centers, error: centersError },
-        { data: services, error: servicesError },
-        { data: bookings, error: bookingsError }
+        { data: centers },
+        { data: services },
+        { data: bookings }
       ] = await Promise.all([
         supabase
           .from("partners")
@@ -106,9 +106,9 @@ export async function GET(request: NextRequest) {
       // Fetch all partners with enhanced data and statistics
       const [
         { data: partners, error: partnersError },
-        { data: centers, error: centersError },
-        { data: services, error: servicesError },
-        { data: bookings, error: bookingsError }
+        { data: centers },
+        { data: services },
+        { data: bookings }
       ] = await Promise.all([
         supabase
           .from("partners")
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
         const partnerCenters = centers?.filter(c => c.partner_id === partner.id) || []
         const partnerServices = services?.filter(s => s.partner_id === partner.id) || []
         const partnerBookings = bookings?.filter(b => 
-          partnerCenters.some(c => c.id === b.centers?.partner_id)
+          partnerCenters.some(c => c.id === (b.centers as any)?.partner_id)
         ) || []
 
         const totalRevenue = partnerBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0)
@@ -192,9 +192,9 @@ export async function GET(request: NextRequest) {
               return acc
             }, new Map<string, number>())
         )
-          .sort(([,a], [,b]) => b - a)
+          .sort(([,a], [,b]): number => (b as number) - (a as number))
           .slice(0, 5)
-          .map(([city, count]) => ({ city, count }))
+          .map(([city, count]): { city: string; count: number } => ({ city: city as string, count: count as number }))
       }
 
       return NextResponse.json({

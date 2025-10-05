@@ -37,7 +37,7 @@ export async function GET() {
       const registeredUsers = new Map()
       
       // Get unique users who have booked at this center
-      bookings.forEach(booking => {
+      bookings.forEach((booking: any) => {
         const userKey = booking.patient_email || booking.patient_phone
         if (userKey && !registeredUsers.has(userKey)) {
           registeredUsers.set(userKey, {
@@ -62,11 +62,11 @@ export async function GET() {
           totalBookings: bookings.length,
           registeredUsers: Array.from(registeredUsers.values()),
           registeredUsersCount: registeredUsers.size,
-          pendingBookings: bookings.filter(b => b.status === 'pending').length,
-          completedBookings: bookings.filter(b => b.status === 'completed').length,
-          cancelledBookings: bookings.filter(b => b.status === 'cancelled').length,
+          pendingBookings: bookings.filter((b: any) => b.status === 'pending').length,
+          completedBookings: bookings.filter((b: any) => b.status === 'completed').length,
+          cancelledBookings: bookings.filter((b: any) => b.status === 'cancelled').length,
           recentBookings: bookings
-            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             .slice(0, 5)
         },
        

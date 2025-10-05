@@ -81,7 +81,7 @@ export default function PartnerLoginPage() {
       setError("")
 
       // Sign in with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email: email,
         password: password
       })
@@ -133,7 +133,7 @@ export default function PartnerLoginPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const { name, email, phone, businessName, businessEmail, businessPhone, address, city, password } = signUpData
+    const { name, email, phone, businessName, businessEmail, address, city, password } = signUpData
     
     if (!name || !email || !phone || !businessName || !businessEmail || !address || !city || !password) {
       setError("Please fill in all required fields")

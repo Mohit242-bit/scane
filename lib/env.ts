@@ -120,6 +120,18 @@ function validateEnv(): Env {
   } catch (error) {
     if (error instanceof z.ZodError) {
       const missingVars = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n')
+      
+      // During build, just log a warning instead of throwing
+      if (process.env.NEXT_PHASE === 'phase-production-build') {
+        console.warn('⚠️  Environment validation warnings during build:\n', missingVars)
+        // Return a partial env object with defaults for build time
+        return {
+          NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+          NODE_ENV: (process.env.NODE_ENV as any) || 'production',
+        } as Env
+      }
+      
       throw new Error(`Environment validation failed:\n${missingVars}`)
     }
     throw error

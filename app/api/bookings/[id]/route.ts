@@ -4,7 +4,7 @@ import supabase from '../../../../lib/supabaseClient'
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id
 

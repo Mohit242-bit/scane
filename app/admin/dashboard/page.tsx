@@ -23,8 +23,6 @@ import {
   Stethoscope, 
   TrendingUp,
   Search,
-  Filter,
-  Plus,
   Edit,
   Eye,
   Clock,
@@ -103,8 +101,6 @@ interface User {
 }
 
 export default function AdminDashboard() {
-  const [session, setSession] = useState<any>(null)
-  const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
   const router = useRouter()
   const { toast } = useToast()
 
@@ -114,10 +110,9 @@ export default function AdminDashboard() {
       const { data: { session }, error } = await supabase.auth.getSession()
       if (error) {
         console.error('Error getting session:', error)
-        setStatus('unauthenticated')
-      } else {
-        setSession(session)
-        setStatus(session ? 'authenticated' : 'unauthenticated')
+      } else if (!session) {
+        // No authenticated session
+        console.log('No session found')
       }
     }
     getSession()
