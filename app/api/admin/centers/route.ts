@@ -69,7 +69,7 @@ export async function GET() {
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             .slice(0, 5)
         },
-        // Remove the bookings array to reduce payload size
+       
         bookings: undefined
       }
     }) || []
