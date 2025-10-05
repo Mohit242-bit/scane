@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 
 interface PartnerGuardProps {
   children: React.ReactNode
@@ -13,6 +13,7 @@ export default function PartnerGuard({ children, fallback }: PartnerGuardProps) 
   const router = useRouter()
   const [isPartner, setIsPartner] = useState<boolean | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const supabase = createClient()
 
   useEffect(() => {
     const checkPartnerStatus = async () => {

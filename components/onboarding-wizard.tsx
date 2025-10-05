@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { getCurrentUser } from "@/lib/auth"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 
 const steps = [
   { id: 1, title: "Business Information", description: "Tell us about your business" },
@@ -21,11 +21,13 @@ const steps = [
 ]
 
 export default function OnboardingWizard() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const supabase = createClient()
+  
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const router = useRouter()
-  const { toast } = useToast()
 
   // Form data
   const [businessData, setBusinessData] = useState({

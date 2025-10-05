@@ -24,7 +24,7 @@ import {
   Edit,
   Plus
 } from "lucide-react"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 import { useToast } from "@/hooks/use-toast"
 
 interface User {
@@ -71,6 +71,7 @@ interface Booking {
 export default function PartnerDashboard() {
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
   
   const [user, setUser] = useState<User | null>(null)
   const [partner, setPartner] = useState<PartnerProfile | null>(null)

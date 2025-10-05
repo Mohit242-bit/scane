@@ -5,7 +5,7 @@ import type React from "react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import LoadingSpinner from "./loading-spinner"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -17,6 +17,7 @@ export default function AuthGuard({ children, requireAuth = true, redirectTo = "
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const supabase = createClient()
 
   useEffect(() => {
     const checkAuth = async () => {

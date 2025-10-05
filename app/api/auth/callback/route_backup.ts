@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
   // This handles the case where callback is hit after successful OAuth
   if (!code && !error) {
     console.log("No code present - checking for existing session")
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    const { data: { session } } = await supabase.auth.getSession()
     
     if (session) {
       console.log("✅ Session exists - user already authenticated, redirecting gracefully")

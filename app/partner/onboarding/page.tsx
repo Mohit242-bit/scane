@@ -29,7 +29,7 @@ import {
   Accessibility,
   Coffee
 } from "lucide-react"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 
 interface OnboardingStep {
   id: number
@@ -39,12 +39,14 @@ interface OnboardingStep {
 }
 
 export default function PartnerOnboarding() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const supabase = createClient()
+  
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [error, setError] = useState("")
-  const router = useRouter()
-  const { toast } = useToast()
 
   // Partner basic info
   const [partnerData, setPartnerData] = useState({

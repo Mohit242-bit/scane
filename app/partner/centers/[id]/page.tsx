@@ -24,7 +24,7 @@ import {
   Eye,
   TrendingUp
 } from "lucide-react"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 import { useToast } from "@/hooks/use-toast"
 
 interface CenterDetails {
@@ -70,6 +70,7 @@ interface Booking {
 export default function CenterDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
   
   const [center, setCenter] = useState<CenterDetails | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])

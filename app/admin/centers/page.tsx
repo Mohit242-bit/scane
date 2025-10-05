@@ -18,14 +18,10 @@ import {
   CalendarDays, 
   Search, 
   Loader2,
-  TrendingUp,
   Clock,
   CheckCircle,
-  AlertCircle,
-  XCircle,
   Eye
 } from "lucide-react"
-import Link from "next/link"
 
 interface RegisteredUser {
   name: string

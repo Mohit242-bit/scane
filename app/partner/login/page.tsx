@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase-browser"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,8 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
-import { Chrome, Mail, Phone, Building2, AlertCircle } from "lucide-react"
-import supabase from "@/lib/supabaseClient"
+import { Chrome, Mail, Building2, AlertCircle } from "lucide-react"
 
 export default function PartnerLoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -32,11 +31,7 @@ export default function PartnerLoginPage() {
   const [error, setError] = useState("")
   const router = useRouter()
   const { toast } = useToast()
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = createClient()
 
   const handleGoogleLogin = async () => {
     try {

@@ -16,7 +16,7 @@ import type { Center, Service, Slot } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { trackEvent } from "@/lib/events"
 import { useToast } from "@/hooks/use-toast"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 import LoadingSpinner from "@/components/loading-spinner"
 import ErrorBoundary from "@/components/error-boundary"
 import RazorpayPayment from "@/components/razorpay-payment"
@@ -34,6 +34,7 @@ export default function BookingFlow({
 }: FlowProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 

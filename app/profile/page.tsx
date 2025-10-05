@@ -13,11 +13,13 @@ import { User as UserIcon, Phone, Mail, Calendar, MapPin, Edit2, Save, X } from 
 import { useToast } from "@/hooks/use-toast"
 import AuthGuard from "@/components/auth-guard"
 import LoadingSpinner from "@/components/loading-spinner"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null)
   const { toast } = useToast()
+  const supabase = createClient()
+  
+  const [user, setUser] = useState<User | null>(null)
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({

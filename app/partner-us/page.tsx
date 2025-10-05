@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 import { 
   Chrome, 
   Building2, 
@@ -23,6 +23,10 @@ import {
 } from "lucide-react"
 
 export default function PartnerUSPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const supabase = createClient()
+  
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({
@@ -35,8 +39,6 @@ export default function PartnerUSPage() {
   })
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userEmail, setUserEmail] = useState("")
-  const router = useRouter()
-  const { toast } = useToast()
   
   // Check if user is already logged in on mount
   useEffect(() => {
@@ -425,7 +427,6 @@ export default function PartnerUSPage() {
                       </p>
                     </div>
                   </form>
-                )}
                 )}
 
                 <Separator />

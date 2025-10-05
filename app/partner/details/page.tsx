@@ -10,9 +10,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { Building2, User, MapPin, Phone, Mail, CheckCircle } from "lucide-react"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 
 export default function PartnerDetailsPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const supabase = createClient()
+  
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [partnerData, setPartnerData] = useState<any>(null)
@@ -23,8 +27,6 @@ export default function PartnerDetailsPage() {
     address: "",
     city: ""
   })
-  const router = useRouter()
-  const { toast } = useToast()
 
   useEffect(() => {
     checkUserAndLoadData()

@@ -9,9 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Phone, MessageSquare, Mail } from "lucide-react"
 import { signInWithGoogle, signInWithEmail, getCurrentUser } from "@/lib/auth"
-import supabase from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase-browser"
 
 export default function SignInPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const supabase = createClient()
+  
   const [phone, setPhone] = useState("")
   const [otp, setOtp] = useState("")
   const [name, setName] = useState("")
@@ -22,8 +26,6 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   
-  const router = useRouter()
-  const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") || "/"
 
   // Check if user is already signed in

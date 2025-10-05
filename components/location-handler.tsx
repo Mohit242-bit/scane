@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 interface LocationHandlerProps {
   onLocationSet: (location: { city: string; coordinates?: { lat: number; lng: number } }) => void
   trigger?: React.ReactNode
+  redirectAfterSelection?: string // Add optional redirect path
 }
 
 interface GeolocationCoordinates {
@@ -30,7 +31,8 @@ const SERVICEABLE_CITIES = [
   { name: "Ahmedabad", slug: "ahmedabad" },
 ]
 
-export default function LocationHandler({ onLocationSet, trigger }: LocationHandlerProps) {
+export default function LocationHandler({ onLocationSet, trigger, redirectAfterSelection }: LocationHandlerProps) {
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState<'permission' | 'selecting' | 'manual' | 'checking' | 'result'>('permission')
   const [loading, setLoading] = useState(false)
@@ -39,8 +41,6 @@ export default function LocationHandler({ onLocationSet, trigger }: LocationHand
   const [detectedCity, setDetectedCity] = useState<string>("")
   const [selectedCity, setSelectedCity] = useState<string>("")
   const [isServiceable, setIsServiceable] = useState<boolean | null>(null)
-  
-  const router = useRouter()
 
   useEffect(() => {
     // Check if location is already set in localStorage
@@ -53,7 +53,8 @@ export default function LocationHandler({ onLocationSet, trigger }: LocationHand
         console.error("Error parsing saved location:", error)
       }
     }
-  }, [onLocationSet])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const requestLocationPermission = async () => {
     setLoading(true)
@@ -165,6 +166,11 @@ export default function LocationHandler({ onLocationSet, trigger }: LocationHand
     onLocationSet(locationData)
     setIsOpen(false)
     setError("")
+    
+    // Redirect if path is provided
+    if (redirectAfterSelection) {
+      router.push(redirectAfterSelection)
+    }
   }
 
   const handleContinueWithService = () => {
@@ -173,6 +179,11 @@ export default function LocationHandler({ onLocationSet, trigger }: LocationHand
       localStorage.setItem("scanezy_location", JSON.stringify(locationData))
       onLocationSet(locationData)
       setIsOpen(false)
+      
+      // Redirect if path is provided
+      if (redirectAfterSelection) {
+        router.push(redirectAfterSelection)
+      }
     }
   }
 
