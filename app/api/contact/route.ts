@@ -3,6 +3,9 @@ import { z } from "zod"
 import { rateLimiter } from "@/lib/rate-limit"
 import { email } from "@/lib/email"
 
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),

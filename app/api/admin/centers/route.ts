@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import supabase from '../../../../lib/supabaseClient'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET() {
   try {
     // Fetch all centers with their related data

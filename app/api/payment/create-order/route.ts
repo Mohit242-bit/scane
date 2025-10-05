@@ -2,6 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import { payment } from "@/lib/payment"
 import { db } from "@/lib/database"
 
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
   try {
     const { bookingId } = await req.json()

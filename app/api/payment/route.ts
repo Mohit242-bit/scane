@@ -4,6 +4,9 @@ import { db, redis } from "@/lib/database"
 import { notifications } from "@/lib/notifications"
 import { analytics } from "@/lib/analytics"
 
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
   try {
     const { bookingId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json()

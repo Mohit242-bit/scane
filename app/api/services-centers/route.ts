@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import supabase from '../../../lib/supabaseClient'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   try {
     // Get all services and centers, then create relationships based on available slots

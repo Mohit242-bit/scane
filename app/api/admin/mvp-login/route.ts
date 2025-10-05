@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
 // Dummy admin credentials (in production, these should be in environment variables)
 const ADMIN_CREDENTIALS = {
   email: 'admin@scanezy.com',

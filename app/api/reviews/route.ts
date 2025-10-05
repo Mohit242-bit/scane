@@ -2,6 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { v4 as uuidv4 } from "uuid"
 
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const bookingId = searchParams.get("bookingId")

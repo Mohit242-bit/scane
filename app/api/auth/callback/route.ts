@@ -3,6 +3,9 @@ import { createClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
 
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
 // Service role client for admin operations
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { databaseOperations } from "@/lib/database"
 
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
 const phoneSchema = {
   safeParse: (phone: string) => ({
     success: /^[6-9]\d{9}$/.test(phone),

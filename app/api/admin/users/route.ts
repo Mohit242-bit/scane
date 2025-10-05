@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 import supabase from "@/lib/supabaseClient"
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // Helper function to verify admin auth
 function verifyAdminAuth(request: NextRequest) {
   const token = request.cookies.get("mvp_admin")?.value

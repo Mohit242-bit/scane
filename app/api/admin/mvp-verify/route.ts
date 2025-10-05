@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   try {
     const token = req.cookies.get("mvp_admin")?.value
