@@ -1,44 +1,44 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Clock, Search, IndianRupee, AlertCircle } from "lucide-react"
-import Link from "next/link"
-import { services as dummyServices } from '@/lib/data'
+import { useState, useMemo } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Clock, Search, IndianRupee, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { services as dummyServices } from "@/lib/data";
 
 export default function ServicesPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [priceRange, setPriceRange] = useState("all")
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [priceRange, setPriceRange] = useState("all");
 
-  const services = dummyServices
-  const error = null
-  const isLoading = false
+  const services = dummyServices;
+  const error = null;
+  const isLoading = false;
 
-  const categories = services ? ["all", ...Array.from(new Set(services.map((service: any) => service.category || 'Other')))] : ["all"]
+  const categories = services ? ["all", ...Array.from(new Set(services.map((service: any) => service.category || "Other")))] : ["all"];
 
   const filteredServices = useMemo(() => {
     if (!services) return [];
     return services.filter((service: any) => {
       const matchesSearch =
         service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (service.description || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (service.description || "").toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCategory = selectedCategory === "all" || service.category === selectedCategory
+      const matchesCategory = selectedCategory === "all" || service.category === selectedCategory;
 
       const matchesPrice =
         priceRange === "all" ||
         (priceRange === "low" && service.price < 2000) ||
         (priceRange === "medium" && service.price >= 2000 && service.price < 5000) ||
-        (priceRange === "high" && service.price >= 5000)
+        (priceRange === "high" && service.price >= 5000);
 
-      return matchesSearch && matchesCategory && matchesPrice
-    })
-  }, [services, searchTerm, selectedCategory, priceRange])
+      return matchesSearch && matchesCategory && matchesPrice;
+    });
+  }, [services, searchTerm, selectedCategory, priceRange]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -108,7 +108,7 @@ export default function ServicesPage() {
               <Card key={service.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <Badge variant="secondary">{service.category || 'Other'}</Badge>
+                    <Badge variant="secondary">{service.category || "Other"}</Badge>
                     <div className="flex items-center text-lg font-bold text-green-600">
                       <IndianRupee className="h-4 w-4" />
                       {service.price?.toLocaleString()}
@@ -157,5 +157,5 @@ export default function ServicesPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,92 +1,92 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Phone, MessageSquare, Mail } from "lucide-react"
-import { signInWithGoogle, signInWithEmail, getCurrentUser } from "@/lib/auth"
-import { createClient } from "@/lib/supabase-browser"
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Phone, MessageSquare, Mail } from "lucide-react";
+import { signInWithGoogle, signInWithEmail, getCurrentUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase-browser";
 
 export default function SignInPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const supabase = createClient()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const supabase = createClient();
   
-  const [phone, setPhone] = useState("")
-  const [otp, setOtp] = useState("")
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [authMethod, setAuthMethod] = useState<"phone" | "email" | "google">("phone")
-  const [step, setStep] = useState<"phone" | "otp" | "email">("phone")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authMethod, setAuthMethod] = useState<"phone" | "email" | "google">("phone");
+  const [step, setStep] = useState<"phone" | "otp" | "email">("phone");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   
-  const callbackUrl = searchParams.get("callbackUrl") || "/"
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   // Check if user is already signed in
   useEffect(() => {
     const checkUser = async () => {
-      const user = await getCurrentUser()
+      const user = await getCurrentUser();
       if (user) {
-        router.push(callbackUrl)
+        router.push(callbackUrl);
       }
-    }
-    checkUser()
-  }, [router, callbackUrl])
+    };
+    checkUser();
+  }, [router, callbackUrl]);
 
   const sendOTP = async () => {
     if (!phone) {
-      setError("Please enter your phone number")
-      return
+      setError("Please enter your phone number");
+      return;
     }
 
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     try {
       const response = await fetch("/api/otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone }),
-      })
+      });
 
       if (response.ok) {
-        setStep("otp")
+        setStep("otp");
       } else {
-        setError("Failed to send OTP. Please try again.")
+        setError("Failed to send OTP. Please try again.");
       }
     } catch (error) {
-      setError("Something went wrong. Please try again.")
+      setError("Something went wrong. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const verifyOTP = async () => {
     if (!otp) {
-      setError("Please enter the OTP")
-      return
+      setError("Please enter the OTP");
+      return;
     }
 
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     try {
       // For demo purposes, accept "123456" as valid OTP
       if (otp === "123456") {
         // Create or sign in user with phone
         // For now, we'll create a dummy email for phone-based auth
-        const dummyEmail = `${phone}@phone.scanezy.com`
-        const dummyPassword = "phone-auth-" + phone
+        const dummyEmail = `${phone}@phone.scanezy.com`;
+        const dummyPassword = "phone-auth-" + phone;
         
         // Try to sign in first
         try {
-          await signInWithEmail(dummyEmail, dummyPassword)
+          await signInWithEmail(dummyEmail, dummyPassword);
         } catch (signInError) {
           // If sign in fails, try to sign up
           try {
@@ -97,12 +97,12 @@ export default function SignInPage() {
                 data: {
                   name: name || `User ${phone.slice(-4)}`,
                   phone: phone,
-                  auth_method: 'phone'
+                  auth_method: "phone"
                 }
               }
-            })
+            });
             
-            if (error) throw error
+            if (error) throw error;
             
             // Create user record
             if (data.user) {
@@ -118,56 +118,56 @@ export default function SignInPage() {
                   auth_provider_id: data.user.id,
                   created_at: new Date().toISOString(),
                   updated_at: new Date().toISOString()
-                })
+                });
             }
           } catch (signUpError) {
-            throw signUpError
+            throw signUpError;
           }
         }
         
-        router.push(callbackUrl)
+        router.push(callbackUrl);
       } else {
-        setError("Invalid OTP. Please try again.")
+        setError("Invalid OTP. Please try again.");
       }
     } catch (error: any) {
-      setError("Authentication failed. Please try again.")
-      console.error("OTP verification error:", error)
+      setError("Authentication failed. Please try again.");
+      console.error("OTP verification error:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleEmailSignIn = async () => {
     if (!email || !password) {
-      setError("Please enter both email and password")
-      return
+      setError("Please enter both email and password");
+      return;
     }
 
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     try {
-      await signInWithEmail(email, password)
-      router.push(callbackUrl)
+      await signInWithEmail(email, password);
+      router.push(callbackUrl);
     } catch (error: any) {
-      setError(error.message || "Sign in failed. Please try again.")
+      setError(error.message || "Sign in failed. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleGoogleSignIn = async () => {
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     try {
-      await signInWithGoogle()
+      await signInWithGoogle();
       // The redirect will happen automatically after successful auth
     } catch (error: any) {
-      setError(error.message || "Google sign in failed. Please try again.")
-      setLoading(false)
+      setError(error.message || "Google sign in failed. Please try again.");
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -201,8 +201,8 @@ export default function SignInPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setAuthMethod("email")
-                    setStep("email")
+                    setAuthMethod("email");
+                    setStep("email");
                   }}
                   className="flex-1"
                 >
@@ -289,8 +289,8 @@ export default function SignInPage() {
               <Button 
                 variant="ghost" 
                 onClick={() => {
-                  setStep("phone")
-                  setAuthMethod("phone")
+                  setStep("phone");
+                  setAuthMethod("phone");
                 }}
                 className="p-0 h-auto"
               >
@@ -378,5 +378,5 @@ export default function SignInPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

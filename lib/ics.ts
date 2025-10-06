@@ -8,17 +8,17 @@ type IcsInput = {
 }
 
 function pad(n: number) {
-  return n.toString().padStart(2, "0")
+  return n.toString().padStart(2, "0");
 }
 
 function toICSDate(d: Date) {
-  const yyyy = d.getUTCFullYear()
-  const mm = pad(d.getUTCMonth() + 1)
-  const dd = pad(d.getUTCDate())
-  const hh = pad(d.getUTCHours())
-  const mi = pad(d.getUTCMinutes())
-  const ss = pad(d.getUTCSeconds())
-  return `${yyyy}${mm}${dd}T${hh}${mi}${ss}Z`
+  const yyyy = d.getUTCFullYear();
+  const mm = pad(d.getUTCMonth() + 1);
+  const dd = pad(d.getUTCDate());
+  const hh = pad(d.getUTCHours());
+  const mi = pad(d.getUTCMinutes());
+  const ss = pad(d.getUTCSeconds());
+  return `${yyyy}${mm}${dd}T${hh}${mi}${ss}Z`;
 }
 
 export function makeICS(input: IcsInput) {
@@ -38,10 +38,10 @@ export function makeICS(input: IcsInput) {
     `LOCATION:${escapeICS(input.location)}`,
     "END:VEVENT",
     "END:VCALENDAR",
-  ]
-  return lines.join("\r\n")
+  ];
+  return lines.join("\r\n");
 }
 
 function escapeICS(text: string) {
-  return text.replace(/[\\;,]/g, (m) => "\\" + m).replace(/\n/g, "\\n")
+  return text.replace(/[\\;,]/g, (m) => "\\" + m).replace(/\n/g, "\\n");
 }

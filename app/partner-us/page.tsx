@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
-import { createClient } from "@/lib/supabase-browser"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { createClient } from "@/lib/supabase-browser";
 import { 
   Chrome, 
   Building2, 
@@ -20,15 +20,15 @@ import {
   Shield,
   TrendingUp,
   CheckCircle
-} from "lucide-react"
+} from "lucide-react";
 
 export default function PartnerUSPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const supabase = createClient()
+  const router = useRouter();
+  const { toast } = useToast();
+  const supabase = createClient();
   
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -36,51 +36,51 @@ export default function PartnerUSPage() {
     fullName: "",
     phone: "",
     businessName: ""
-  })
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
+  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   
   // Check if user is already logged in on mount
   useEffect(() => {
-    checkAuth()
-  }, [])
+    checkAuth();
+  }, []);
   
   const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      setIsLoggedIn(true)
-      setUserEmail(user.email || "")
+      setIsLoggedIn(true);
+      setUserEmail(user.email || "");
     }
-  }
+  };
 
   // Use shared Supabase client (same as working partner login)
 
   const handlePartnerSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
-    const { email, password, confirmPassword, fullName, phone, businessName } = formData
+    const { email, password, confirmPassword, fullName, phone, businessName } = formData;
     
     // Validation
     if (!email || !password || !confirmPassword || !fullName || !phone) {
-      setError("Please fill in all required fields")
-      return
+      setError("Please fill in all required fields");
+      return;
     }
     
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      return
+      setError("Passwords do not match");
+      return;
     }
     
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long")
-      return
+      setError("Password must be at least 6 characters long");
+      return;
     }
 
     try {
-      setIsLoading(true)
-      setError("")
+      setIsLoading(true);
+      setError("");
       
-      console.log("Creating partner account:", email)
+      console.log("Creating partner account:", email);
       
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -90,24 +90,24 @@ export default function PartnerUSPage() {
           data: {
             full_name: fullName,
             phone: phone,
-            role: 'partner'
+            role: "partner"
           },
           emailRedirectTo: `${window.location.origin}/partner-us`
         }
-      })
+      });
       
       if (authError) {
-        console.error("Auth signup error:", authError)
-        setError(authError.message)
-        return
+        console.error("Auth signup error:", authError);
+        setError(authError.message);
+        return;
       }
       
       if (!authData.user) {
-        setError("Failed to create user account")
-        return
+        setError("Failed to create user account");
+        return;
       }
       
-      console.log("User created:", authData.user.id)
+      console.log("User created:", authData.user.id);
       
       // Create user in public.users table
       const { error: userError } = await supabase
@@ -120,10 +120,10 @@ export default function PartnerUSPage() {
           role: "partner",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        })
+        });
       
       if (userError) {
-        console.error("Error creating user profile:", userError)
+        console.error("Error creating user profile:", userError);
         // Continue anyway, user can complete profile later
       }
       
@@ -138,35 +138,35 @@ export default function PartnerUSPage() {
           status: "pending",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        })
+        });
       
       if (partnerError) {
-        console.error("Error creating partner profile:", partnerError)
+        console.error("Error creating partner profile:", partnerError);
         // Continue anyway
       }
       
-      if (authData.user.email_confirmed_at || process.env.NODE_ENV === 'development') {
+      if (authData.user.email_confirmed_at || process.env.NODE_ENV === "development") {
         // Email confirmed or dev mode, log them in
-        setIsLoggedIn(true)
-        setUserEmail(email)
+        setIsLoggedIn(true);
+        setUserEmail(email);
         toast({
           title: "Account Created!",
           description: "Your partner account has been created successfully."
-        })
+        });
       } else {
         toast({
           title: "Check your email",
           description: "We've sent you a confirmation link. Please check your email and click the link to continue."
-        })
+        });
       }
       
     } catch (error: any) {
-      console.error("Signup error:", error)
-      setError(error.message || "An error occurred during signup. Please try again.")
+      console.error("Signup error:", error);
+      setError(error.message || "An error occurred during signup. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
 
   const benefits = [
@@ -190,7 +190,7 @@ export default function PartnerUSPage() {
       title: "Secure & Compliant",
       description: "HIPAA-compliant platform ensuring patient data security"
     }
-  ]
+  ];
 
   const features = [
     "Real-time appointment booking",
@@ -199,7 +199,7 @@ export default function PartnerUSPage() {
     "Patient record management",
     "Analytics and reporting dashboard",
     "24/7 customer support"
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0AA1A7]/5 to-[#B7F171]/5">
@@ -236,7 +236,7 @@ export default function PartnerUSPage() {
             {/* Benefits Grid */}
             <div className="grid sm:grid-cols-2 gap-6">
               {benefits.map((benefit, index) => {
-                const Icon = benefit.icon
+                const Icon = benefit.icon;
                 return (
                   <div key={index} className="flex gap-3">
                     <div className="flex-shrink-0">
@@ -249,7 +249,7 @@ export default function PartnerUSPage() {
                       <p className="text-sm text-[#5B6B7A]">{benefit.description}</p>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
 
@@ -316,9 +316,9 @@ export default function PartnerUSPage() {
                       
                       <Button
                         onClick={async () => {
-                          await supabase.auth.signOut()
-                          setIsLoggedIn(false)
-                          setUserEmail("")
+                          await supabase.auth.signOut();
+                          setIsLoggedIn(false);
+                          setUserEmail("");
                         }}
                         variant="ghost"
                         className="w-full"
@@ -494,5 +494,5 @@ export default function PartnerUSPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -3,10 +3,10 @@
  * Handles Razorpay payment operations including order creation, verification, and refunds
  */
 
-import Razorpay from 'razorpay'
-import crypto from 'crypto'
-import { config } from './config'
-import { logger } from './logger'
+import Razorpay from "razorpay";
+import crypto from "crypto";
+import { config } from "./config";
+import { logger } from "./logger";
 
 interface RazorpayOrder {
   id: string
@@ -27,14 +27,14 @@ interface RefundOptions {
 }
 
 class PaymentService {
-  private razorpay: Razorpay
-  private readonly logger = logger
+  private razorpay: Razorpay;
+  private readonly logger = logger;
 
   constructor() {
     this.razorpay = new Razorpay({
       key_id: config.payment.razorpay.keyId as string,
       key_secret: config.payment.razorpay.keySecret as string,
-    })
+    });
   }
 
   /**
@@ -45,37 +45,37 @@ class PaymentService {
    */
   async createOrder(amount: number, bookingId: string): Promise<RazorpayOrder> {
     try {
-      this.logger.info('Creating Razorpay order', {
+      this.logger.info("Creating Razorpay order", {
         amount,
         bookingId,
         amountInPaise: amount * 100,
-      })
+      });
 
       const order = await this.razorpay.orders.create({
         amount: amount * 100, // Convert to paise
-        currency: 'INR',
+        currency: "INR",
         receipt: bookingId,
         notes: {
           booking_id: bookingId,
         },
-      })
+      });
 
-      this.logger.info('Razorpay order created successfully', {
+      this.logger.info("Razorpay order created successfully", {
         orderId: order.id,
         bookingId,
-      })
+      });
 
       return {
         id: order.id,
         amount: Number(order.amount),
         currency: order.currency,
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to create Razorpay order', error, {
+      this.logger.error("Failed to create Razorpay order", error, {
         amount,
         bookingId,
-      })
-      throw new Error('Failed to create payment order')
+      });
+      throw new Error("Failed to create payment order");
     }
   }
 
@@ -86,40 +86,40 @@ class PaymentService {
    */
   verifyPayment(verification: PaymentVerification): boolean {
     try {
-      const { orderId, paymentId, signature } = verification
+      const { orderId, paymentId, signature } = verification;
       
-      this.logger.debug('Verifying payment signature', {
+      this.logger.debug("Verifying payment signature", {
         orderId,
         paymentId,
-      })
+      });
 
-      const body = `${orderId}|${paymentId}`
+      const body = `${orderId}|${paymentId}`;
       const expectedSignature = crypto
-        .createHmac('sha256', config.payment.razorpay.keySecret)
+        .createHmac("sha256", config.payment.razorpay.keySecret)
         .update(body)
-        .digest('hex')
+        .digest("hex");
 
-      const isValid = expectedSignature === signature
+      const isValid = expectedSignature === signature;
 
       if (isValid) {
-        this.logger.info('Payment signature verified successfully', {
+        this.logger.info("Payment signature verified successfully", {
           orderId,
           paymentId,
-        })
+        });
       } else {
-        this.logger.warn('Payment signature verification failed', {
+        this.logger.warn("Payment signature verification failed", {
           orderId,
           paymentId,
-        })
+        });
       }
 
-      return isValid
+      return isValid;
     } catch (error) {
-      this.logger.error('Payment verification error', error, {
+      this.logger.error("Payment verification error", error, {
         orderId: verification.orderId,
         paymentId: verification.paymentId,
-      })
-      return false
+      });
+      return false;
     }
   }
 
@@ -130,16 +130,16 @@ class PaymentService {
    */
   async getPaymentDetails(paymentId: string): Promise<unknown> {
     try {
-      this.logger.debug('Fetching payment details', { paymentId })
+      this.logger.debug("Fetching payment details", { paymentId });
       
-      const payment = await this.razorpay.payments.fetch(paymentId)
+      const payment = await this.razorpay.payments.fetch(paymentId);
       
-      this.logger.info('Payment details fetched successfully', { paymentId })
+      this.logger.info("Payment details fetched successfully", { paymentId });
       
-      return payment
+      return payment;
     } catch (error) {
-      this.logger.error('Failed to fetch payment details', error, { paymentId })
-      throw new Error('Failed to fetch payment details')
+      this.logger.error("Failed to fetch payment details", error, { paymentId });
+      throw new Error("Failed to fetch payment details");
     }
   }
 
@@ -150,37 +150,37 @@ class PaymentService {
    */
   async refundPayment(options: RefundOptions): Promise<unknown> {
     try {
-      const { paymentId, amount, reason } = options
+      const { paymentId, amount, reason } = options;
       
-      this.logger.info('Processing refund', {
+      this.logger.info("Processing refund", {
         paymentId,
         amount,
         reason,
         isPartial: Boolean(amount),
-      })
+      });
 
       const refund = await this.razorpay.payments.refund(paymentId, {
         amount: amount ? amount * 100 : undefined, // Convert to paise if partial refund
         notes: reason ? { reason } : undefined,
-      })
+      });
 
-      this.logger.info('Refund processed successfully', {
+      this.logger.info("Refund processed successfully", {
         paymentId,
         refundId: refund.id,
         amount: refund.amount,
-      })
+      });
 
-      return refund
+      return refund;
     } catch (error) {
-      this.logger.error('Refund processing failed', error, {
+      this.logger.error("Refund processing failed", error, {
         paymentId: options.paymentId,
         amount: options.amount,
         reason: options.reason,
-      })
-      throw new Error('Failed to process refund')
+      });
+      throw new Error("Failed to process refund");
     }
   }
 }
 
-export const payment = new PaymentService()
+export const payment = new PaymentService();
 

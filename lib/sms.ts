@@ -1,11 +1,11 @@
-import { Twilio } from "twilio"
-import { config } from "./config"
+import { Twilio } from "twilio";
+import { config } from "./config";
 
 class SMSService {
-  private client: Twilio
+  private client: Twilio;
 
   constructor() {
-    this.client = new Twilio(config.communication.twilio.accountSid, config.communication.twilio.authToken)
+    this.client = new Twilio(config.communication.twilio.accountSid, config.communication.twilio.authToken);
   }
 
   async sendOTP(phone: string, otp: string): Promise<boolean> {
@@ -14,11 +14,11 @@ class SMSService {
         body: `Your ScanEzy OTP is: ${otp}. Valid for 10 minutes. Do not share this code.`,
         from: config.communication.twilio.phoneNumber,
         to: `+91${phone}`,
-      })
-      return true
+      });
+      return true;
     } catch (error) {
-      console.error("SMS send error:", error)
-      return false
+      console.error("SMS send error:", error);
+      return false;
     }
   }
 
@@ -28,11 +28,11 @@ class SMSService {
         body: `Your ScanEzy booking ${bookingId} is confirmed! Check WhatsApp for details. Support: 1800-SCANEZY`,
         from: config.communication.twilio.phoneNumber,
         to: `+91${phone}`,
-      })
-      return true
+      });
+      return true;
     } catch (error) {
-      console.error("SMS send error:", error)
-      return false
+      console.error("SMS send error:", error);
+      return false;
     }
   }
 
@@ -42,13 +42,13 @@ class SMSService {
         body: `Reminder: Your ${serviceName} appointment is tomorrow at ${dateTime}. Please arrive 15 minutes early.`,
         from: config.communication.twilio.phoneNumber,
         to: `+91${phone}`,
-      })
-      return true
+      });
+      return true;
     } catch (error) {
-      console.error("SMS send error:", error)
-      return false
+      console.error("SMS send error:", error);
+      return false;
     }
   }
 }
 
-export const sms = new SMSService()
+export const sms = new SMSService();

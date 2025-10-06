@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Menu, Calendar, User, LogOut, Shield } from "lucide-react"
-import LocationSearchPlaceholder from "@/components/location-search-placeholder"
-import { createClient } from "@/lib/supabase-browser"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Menu, Calendar, User, LogOut, Shield } from "lucide-react";
+import LocationSearchPlaceholder from "@/components/location-search-placeholder";
+import { createClient } from "@/lib/supabase-browser";
 
 export default function Navigation() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const supabase = createClient()
+  const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data: { user: authUser } } = await supabase.auth.getUser()
+        const { data: { user: authUser } } = await supabase.auth.getUser();
         
         if (authUser) {
           // Get user details from database
@@ -29,7 +29,7 @@ export default function Navigation() {
             .from("users")
             .select("*")
             .eq("id", authUser.id)
-            .single()
+            .single();
           
           setUser({
             ...authUser,
@@ -37,32 +37,32 @@ export default function Navigation() {
             name: userData?.full_name || authUser.user_metadata?.full_name,
             email: authUser.email,
             image: userData?.avatar_url || authUser.user_metadata?.avatar_url
-          })
+          });
         } else {
-          setUser(null)
+          setUser(null);
         }
       } catch (error) {
-        console.error("Error getting user:", error)
-        setUser(null)
+        console.error("Error getting user:", error);
+        setUser(null);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    getUser()
+    getUser();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      getUser()
-    })
+      getUser();
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push("/")
-  }
+    await supabase.auth.signOut();
+    router.push("/");
+  };
 
   const navItems = [
     { href: "/", label: "Home" },
@@ -70,12 +70,12 @@ export default function Navigation() {
     { href: "/centers", label: "Centers" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
-  ]
+  ];
 
-  // Add partner and admin links for non-authenticated users
+  // Add doctor and admin links for non-authenticated users
   if (!user) {
-    navItems.push({ href: "/partner", label: "Partner" })
-    navItems.push({ href: "/admin/login", label: "Admin" })
+  navItems.push({ href: "/partner", label: "Partner" });
+    navItems.push({ href: "/admin/login", label: "Admin" });
   }
 
   return (
@@ -166,8 +166,8 @@ export default function Navigation() {
                   <DropdownMenuItem
                     className="cursor-pointer"
                     onSelect={(event) => {
-                      event.preventDefault()
-                      handleSignOut()
+                      event.preventDefault();
+                      handleSignOut();
                     }}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
@@ -237,8 +237,8 @@ export default function Navigation() {
                         className="w-full" 
                         variant="destructive"
                         onClick={() => {
-                          setIsOpen(false)
-                          handleSignOut()
+                          setIsOpen(false);
+                          handleSignOut();
                         }}
                       >
                         <LogOut className="mr-2 h-4 w-4" />
@@ -267,5 +267,5 @@ export default function Navigation() {
         </div>
       </div>
     </header>
-  )
+  );
 }

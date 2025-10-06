@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function PartnerPage() {
-  const router = useRouter()
-  const { data: session, status } = useSession()
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === "loading") return
+    if (status === "loading") return;
 
     if (!session?.user) {
-      router.push("/partner/login")
-      return
+      router.push("/partner/login");
+      return;
     }
 
     // Redirect authenticated partners to dashboard
-    router.push("/partner/dashboard")
-  }, [session, status, router])
+    router.push("/partner/dashboard");
+  }, [session, status, router]);
 
   if (status === "loading") {
     return (
@@ -28,8 +28,8 @@ export default function PartnerPage() {
           <p className="text-[#5B6B7A]">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  return null
+  return null;
 }

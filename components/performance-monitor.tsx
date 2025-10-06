@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Activity, Zap, Clock, AlertTriangle, CheckCircle } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Activity, Zap, Clock, AlertTriangle, CheckCircle } from "lucide-react";
 
 interface PerformanceMetrics {
   fcp: number // First Contentful Paint
@@ -15,21 +15,21 @@ interface PerformanceMetrics {
 }
 
 export default function PerformanceMonitor() {
-  const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null)
-  const [isVisible, setIsVisible] = useState(false)
+  const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     // Only show in development
-    if (process.env.NODE_ENV !== "development") return
+    if (process.env.NODE_ENV !== "development") return;
 
     const measurePerformance = () => {
-      if (typeof window === "undefined" || !window.performance) return
+      if (typeof window === "undefined" || !window.performance) return;
 
-      const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming
-      const paint = performance.getEntriesByType("paint")
+      const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+      const paint = performance.getEntriesByType("paint");
 
-      const fcp = paint.find((entry) => entry.name === "first-contentful-paint")?.startTime || 0
-      const ttfb = navigation.responseStart - navigation.requestStart
+      const fcp = paint.find((entry) => entry.name === "first-contentful-paint")?.startTime || 0;
+      const ttfb = navigation.responseStart - navigation.requestStart;
 
       // Web Vitals would typically be measured with the web-vitals library
       // For demo purposes, we'll use approximate values
@@ -39,30 +39,30 @@ export default function PerformanceMonitor() {
         fid: Math.random() * 100, // Simulated
         cls: Math.random() * 0.1, // Simulated
         ttfb: ttfb,
-      })
-    }
+      });
+    };
 
     // Measure after page load
     if (document.readyState === "complete") {
-      measurePerformance()
+      measurePerformance();
     } else {
-      window.addEventListener("load", measurePerformance)
+      window.addEventListener("load", measurePerformance);
     }
 
-    return () => window.removeEventListener("load", measurePerformance)
-  }, [])
+    return () => window.removeEventListener("load", measurePerformance);
+  }, []);
 
   const getScoreColor = (value: number, thresholds: { good: number; needs: number }) => {
-    if (value <= thresholds.good) return "text-green-600"
-    if (value <= thresholds.needs) return "text-yellow-600"
-    return "text-red-600"
-  }
+    if (value <= thresholds.good) return "text-green-600";
+    if (value <= thresholds.needs) return "text-yellow-600";
+    return "text-red-600";
+  };
 
   const getScoreIcon = (value: number, thresholds: { good: number; needs: number }) => {
-    if (value <= thresholds.good) return <CheckCircle className="h-3 w-3 text-green-600" />
-    if (value <= thresholds.needs) return <AlertTriangle className="h-3 w-3 text-yellow-600" />
-    return <AlertTriangle className="h-3 w-3 text-red-600" />
-  }
+    if (value <= thresholds.good) return <CheckCircle className="h-3 w-3 text-green-600" />;
+    if (value <= thresholds.needs) return <AlertTriangle className="h-3 w-3 text-yellow-600" />;
+    return <AlertTriangle className="h-3 w-3 text-red-600" />;
+  };
 
   if (process.env.NODE_ENV !== "development" || !isVisible || !metrics) {
     return (
@@ -70,7 +70,7 @@ export default function PerformanceMonitor() {
         <Activity className="h-4 w-4 mr-2" />
         Performance
       </Button>
-    )
+    );
   }
 
   return (
@@ -166,5 +166,5 @@ export default function PerformanceMonitor() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

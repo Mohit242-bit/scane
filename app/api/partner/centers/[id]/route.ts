@@ -1,24 +1,24 @@
-import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+);
 
 // Get specific center details
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const authHeader = req.headers.get("authorization")
+    const authHeader = req.headers.get("authorization");
     if (!authHeader) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const token = authHeader.replace("Bearer ", "")
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get partner profile
@@ -26,10 +26,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       .from("partners")
       .select("id")
       .eq("user_id", user.id)
-      .single()
+      .single();
 
     if (!partnerProfile) {
-      return NextResponse.json({ error: "Partner profile not found" }, { status: 404 })
+      return NextResponse.json({ error: "Partner profile not found" }, { status: 404 });
     }
 
     // Get center details with services
@@ -47,35 +47,35 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       `)
       .eq("id", params.id)
       .eq("partner_id", partnerProfile.id)
-      .single()
+      .single();
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Center not found" }, { status: 404 })
+        return NextResponse.json({ error: "Center not found" }, { status: 404 });
       }
-      throw error
+      throw error;
     }
 
-    return NextResponse.json({ center })
+    return NextResponse.json({ center });
   } catch (error: any) {
-    console.error("Get center error:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error("Get center error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 // Update center details
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const authHeader = req.headers.get("authorization")
+    const authHeader = req.headers.get("authorization");
     if (!authHeader) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const token = authHeader.replace("Bearer ", "")
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get partner profile
@@ -83,13 +83,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       .from("partners")
       .select("id")
       .eq("user_id", user.id)
-      .single()
+      .single();
 
     if (!partnerProfile) {
-      return NextResponse.json({ error: "Partner profile not found" }, { status: 404 })
+      return NextResponse.json({ error: "Partner profile not found" }, { status: 404 });
     }
 
-    const body = await req.json()
+    const body = await req.json();
     const {
       name,
       address,
@@ -100,7 +100,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       operating_hours,
       amenities,
       is_active
-    } = body
+    } = body;
 
     // Update center
     const { data: center, error } = await supabase
@@ -120,35 +120,35 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       .eq("id", params.id)
       .eq("partner_id", partnerProfile.id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      throw error
+      throw error;
     }
 
     return NextResponse.json({
       success: true,
       center
-    })
+    });
   } catch (error: any) {
-    console.error("Update center error:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error("Update center error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 // Deactivate/Delete center
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const authHeader = req.headers.get("authorization")
+    const authHeader = req.headers.get("authorization");
     if (!authHeader) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const token = authHeader.replace("Bearer ", "")
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get partner profile
@@ -156,10 +156,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       .from("partners")
       .select("id")
       .eq("user_id", user.id)
-      .single()
+      .single();
 
     if (!partnerProfile) {
-      return NextResponse.json({ error: "Partner profile not found" }, { status: 404 })
+      return NextResponse.json({ error: "Partner profile not found" }, { status: 404 });
     }
 
     // Check for active bookings
@@ -168,12 +168,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       .select("id")
       .eq("center_id", params.id)
       .in("status", ["confirmed", "pending"])
-      .limit(1)
+      .limit(1);
 
     if (activeBookings && activeBookings.length > 0) {
       return NextResponse.json({ 
         error: "Cannot delete center with active bookings. Please complete or cancel all bookings first." 
-      }, { status: 400 })
+      }, { status: 400 });
     }
 
     // Soft delete - deactivate center instead of actual deletion
@@ -186,19 +186,19 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       .eq("id", params.id)
       .eq("partner_id", partnerProfile.id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      throw error
+      throw error;
     }
 
     return NextResponse.json({
       success: true,
       message: "Center deactivated successfully",
       center
-    })
+    });
   } catch (error: any) {
-    console.error("Delete center error:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error("Delete center error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

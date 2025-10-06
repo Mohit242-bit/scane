@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import AdminGuard from "@/components/admin-guard"
-import AdminNavigation from "@/components/admin-navigation"
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import AdminGuard from "@/components/admin-guard";
+import AdminNavigation from "@/components/admin-navigation";
 import { 
   CalendarDays, 
   Users, 
@@ -19,7 +19,7 @@ import {
   UserCheck,
   AlertTriangle,
   Loader2
-} from "lucide-react"
+} from "lucide-react";
 
 interface AdminStats {
   totalCenters: number
@@ -47,32 +47,32 @@ interface AdminStats {
 
 
 export default function AdminPage() {
-  const [stats, setStats] = useState<AdminStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchAdminData() {
       try {
-        setLoading(true)
-        const response = await fetch('/api/admin/centers')
-        const data = await response.json()
+        setLoading(true);
+        const response = await fetch("/api/admin/centers");
+        const data = await response.json();
         
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch admin data')
+          throw new Error(data.error || "Failed to fetch admin data");
         }
         
-        setStats(data)
+        setStats(data);
       } catch (err) {
-        console.error('Error fetching admin data:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load admin data')
+        console.error("Error fetching admin data:", err);
+        setError(err instanceof Error ? err.message : "Failed to load admin data");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
     
-    fetchAdminData()
-  }, [])
+    fetchAdminData();
+  }, []);
 
   // Generate recent activity from actual data
   const recentActivity = stats ? stats.centers.flatMap(center => 
@@ -84,7 +84,7 @@ export default function AdminPage() {
       status: booking.status,
       centerName: center.name
     }))
-  ).slice(0, 4) : []
+  ).slice(0, 4) : [];
   return (
     <AdminGuard>
       <AdminNavigation />
@@ -319,5 +319,5 @@ export default function AdminPage() {
         )}
       </div>
     </AdminGuard>
-  )
+  );
 }

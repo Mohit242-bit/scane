@@ -1,4 +1,4 @@
-import type { Service, Center } from "./types"
+import type { Service, Center } from "./types";
 
 export const services: Service[] = [
   {
@@ -61,7 +61,7 @@ export const services: Service[] = [
     preparation: "Avoid calcium supplements 24 hours before",
     fasting_required: false,
   },
-]
+];
 
 export const centers: Center[] = [
   {
@@ -108,23 +108,23 @@ export const centers: Center[] = [
     timings: "Mon-Sun: 8:00 AM - 8:00 PM",
     area_hint: "HSR Layout Sector 1",
   },
-]
+];
 
 // Helper functions
 export function getServiceById(id: string): Service | undefined {
-  return services.find((service) => service.id === id)
+  return services.find((service) => service.id === id);
 }
 
 export function getCenterById(id: string): Center | undefined {
-  return centers.find((center) => center.id === id)
+  return centers.find((center) => center.id === id);
 }
 
 export function getCentersByService(serviceId: string): Center[] {
-  return centers.filter((center) => center.services.includes(serviceId))
+  return centers.filter((center) => center.services.includes(serviceId));
 }
 
 export function getServicesByCategory(category: string): Service[] {
-  return services.filter((service) => service.category === category)
+  return services.filter((service) => service.category === category);
 }
 
 // City data for booking flow
@@ -136,13 +136,13 @@ export function citiesSeed() {
     { slug: "chennai", name: "Chennai", state: "Tamil Nadu" },
     { slug: "hyderabad", name: "Hyderabad", state: "Telangana" },
     { slug: "pune", name: "Pune", state: "Maharashtra" },
-  ]
+  ];
 }
 
 // Get centers for a specific city
 export function seededCentersFor(citySlug: string): Center[] {
-  const cityName = citiesSeed().find((c) => c.slug === citySlug)?.name
-  if (!cityName) return []
+  const cityName = citiesSeed().find((c) => c.slug === citySlug)?.name;
+  if (!cityName) return [];
   
-  return centers.filter((center) => center.city === cityName)
+  return centers.filter((center) => center.city === cityName);
 }

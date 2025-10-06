@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Settings } from "lucide-react"
-import ResponsiveTest from "./responsive-test"
-import PerformanceMonitor from "./performance-monitor"
-import LinkChecker from "./link-checker"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
+import ResponsiveTest from "./responsive-test";
+import PerformanceMonitor from "./performance-monitor";
+import LinkChecker from "./link-checker";
 
 export default function DevTools() {
-  const [showTools, setShowTools] = useState(false)
+  const [showTools, setShowTools] = useState(false);
 
   if (process.env.NODE_ENV !== "development") {
-    return null
+    return null;
   }
 
   return (
@@ -34,5 +34,5 @@ export default function DevTools() {
         </>
       )}
     </>
-  )
+  );
 }

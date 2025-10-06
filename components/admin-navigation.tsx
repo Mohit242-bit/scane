@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   LayoutDashboard, 
   Database, 
@@ -13,45 +13,45 @@ import {
   LogOut, 
   Shield,
   Home
-} from "lucide-react"
+} from "lucide-react";
 
 export default function AdminNavigation() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const [adminUser, setAdminUser] = useState<string | null>(null)
+  const pathname = usePathname();
+  const router = useRouter();
+  const [adminUser, setAdminUser] = useState<string | null>(null);
 
   useEffect(() => {
     // Check admin status on mount
     const checkAdmin = async () => {
       try {
-        const response = await fetch("/api/admin/mvp-verify")
-        const data = await response.json()
+        const response = await fetch("/api/admin/mvp-verify");
+        const data = await response.json();
         if (data.isAdmin) {
-          setAdminUser(data.user)
+          setAdminUser(data.user);
         }
       } catch (error) {
         // Not admin, navigation won't show
       }
-    }
+    };
     
     if (pathname.startsWith("/admin")) {
-      checkAdmin()
+      checkAdmin();
     }
-  }, [pathname])
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/admin/mvp-verify", { method: "DELETE" })
-      router.push("/admin/login")
-      router.refresh()
+      await fetch("/api/admin/mvp-verify", { method: "DELETE" });
+      router.push("/admin/login");
+      router.refresh();
     } catch (error) {
-      console.error("Logout error:", error)
-      router.push("/admin/login")
+      console.error("Logout error:", error);
+      router.push("/admin/login");
     }
-  }
+  };
 
   if (!pathname.startsWith("/admin") || !adminUser) {
-    return null
+    return null;
   }
 
   const navItems = [
@@ -76,7 +76,7 @@ export default function AdminNavigation() {
       label: "User Management",
       icon: Users
     }
-  ]
+  ];
 
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm">
@@ -95,9 +95,9 @@ export default function AdminNavigation() {
             {navItems.map((item) => {
               const isActive = item.exact 
                 ? pathname === item.href 
-                : pathname.startsWith(item.href) && pathname !== "/admin"
+                : pathname.startsWith(item.href) && pathname !== "/admin";
               
-              const Icon = item.icon
+              const Icon = item.icon;
               
               return (
                 <Link
@@ -112,7 +112,7 @@ export default function AdminNavigation() {
                   <Icon className="h-4 w-4" />
                   {item.label}
                 </Link>
-              )
+              );
             })}
           </nav>
 
@@ -146,5 +146,5 @@ export default function AdminNavigation() {
         </div>
       </div>
     </div>
-  )
+  );
 }

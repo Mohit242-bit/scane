@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { services as dummyServices, centers as dummyCenters } from '@/lib/data'
-import { useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ChevronLeft, ChevronRight, MapPin, Clock, IndianRupee, Calendar, User, CheckCircle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useEffect } from "react";
+import { services as dummyServices, centers as dummyCenters } from "@/lib/data";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ChevronLeft, ChevronRight, MapPin, Clock, IndianRupee, Calendar, User, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-import type { Service, Center } from '@/lib/types'
+import type { Service, Center } from "@/lib/types";
 
 interface BookingData {
   city: string
@@ -31,19 +31,19 @@ interface BookingData {
 }
 
 export default function BookPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { toast } = useToast()
-  const preSelectedService = searchParams.get("service")
-  const preSelectedCenter = searchParams.get("center")
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+  const preSelectedService = searchParams.get("service");
+  const preSelectedCenter = searchParams.get("center");
 
-  const [step, setStep] = useState(1)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [services, setServices] = useState<Service[]>([])
-  const [centers, setCenters] = useState<Center[]>([])
-  const [servicesCentersMap, setServicesCentersMap] = useState<Record<string, string[]>>({})
-  const [loadingData, setLoadingData] = useState(true)
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [services, setServices] = useState<Service[]>([]);
+  const [centers, setCenters] = useState<Center[]>([]);
+  const [servicesCentersMap, setServicesCentersMap] = useState<Record<string, string[]>>({});
+  const [loadingData, setLoadingData] = useState(true);
 
   const [bookingData, setBookingData] = useState<BookingData>({
     city: "",
@@ -54,85 +54,85 @@ export default function BookPage() {
     patientName: "",
     patientPhone: "",
     patientEmail: "",
-  })
+  });
 
   // Fetch services and centers on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch services and their center relationships
-        const servicesCentersResponse = await fetch('/api/services-centers')
+        const servicesCentersResponse = await fetch("/api/services-centers");
         if (servicesCentersResponse.ok) {
-          const { services: servicesData, servicesCentersMap: mapData } = await servicesCentersResponse.json()
-          console.log('🔍 Fetched services:', servicesData?.length || 0)
-          console.log('🔍 Services-centers map:', mapData)
-          setServices(servicesData || [])
-          setServicesCentersMap(mapData || {})
+          const { services: servicesData, servicesCentersMap: mapData } = await servicesCentersResponse.json();
+          console.log("🔍 Fetched services:", servicesData?.length || 0);
+          console.log("🔍 Services-centers map:", mapData);
+          setServices(servicesData || []);
+          setServicesCentersMap(mapData || {});
         } else {
-          console.error('Failed to fetch services-centers:', servicesCentersResponse.status)
+          console.error("Failed to fetch services-centers:", servicesCentersResponse.status);
         }
 
         // Fetch centers
-        const centersResponse = await fetch('/api/centers')
+        const centersResponse = await fetch("/api/centers");
         if (centersResponse.ok) {
-          const centersData = await centersResponse.json()
-          console.log('🔍 Fetched centers:', centersData?.length || 0)
-          setCenters(centersData || [])
+          const centersData = await centersResponse.json();
+          console.log("🔍 Fetched centers:", centersData?.length || 0);
+          setCenters(centersData || []);
         } else {
-          console.error('Failed to fetch centers:', centersResponse.status)
+          console.error("Failed to fetch centers:", centersResponse.status);
         }
 
         // If any API calls fail, fallback to dummy data
         if (!servicesCentersResponse.ok || !centersResponse.ok) {
-          console.log('📍 Using dummy data as fallback')
-          setServices(dummyServices)
-          setCenters(dummyCenters)
+          console.log("📍 Using dummy data as fallback");
+          setServices(dummyServices);
+          setCenters(dummyCenters);
           // Create a simple map for dummy data - all services available at all centers
-          const dummyMap: Record<string, string[]> = {}
+          const dummyMap: Record<string, string[]> = {};
           dummyServices.forEach(service => {
-            dummyMap[service.id] = dummyCenters.map(center => center.id)
-          })
-          setServicesCentersMap(dummyMap)
+            dummyMap[service.id] = dummyCenters.map(center => center.id);
+          });
+          setServicesCentersMap(dummyMap);
         }
       } catch (error) {
-        console.error('Failed to fetch data:', error)
+        console.error("Failed to fetch data:", error);
         // Fallback to dummy data
-        setServices(dummyServices)
-        setCenters(dummyCenters)
+        setServices(dummyServices);
+        setCenters(dummyCenters);
         // Create a simple map for dummy data
-        const dummyMap: Record<string, string[]> = {}
+        const dummyMap: Record<string, string[]> = {};
         dummyServices.forEach(service => {
-          dummyMap[service.id] = dummyCenters.map(center => center.id)
-        })
-        setServicesCentersMap(dummyMap)
+          dummyMap[service.id] = dummyCenters.map(center => center.id);
+        });
+        setServicesCentersMap(dummyMap);
       } finally {
-        setLoadingData(false)
+        setLoadingData(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   // Get unique cities from centers
-  const availableCities = [...new Set(centers.map(center => center.city))].sort()
+  const availableCities = [...new Set(centers.map(center => center.city))].sort();
   
   // Filter centers by selected city
   const filteredCenters = bookingData.city
     ? centers.filter(center => center.city === bookingData.city)
-    : centers
+    : centers;
 
   // Filter services by selected center
   const filteredServices = bookingData.centerId
     ? services.filter((service) => {
         // Check if this service is available at the selected center
-        const availableCenters = servicesCentersMap[service.id] || []
+        const availableCenters = servicesCentersMap[service.id] || [];
         // Ensure availableCenters is an array before calling includes
-        return Array.isArray(availableCenters) && availableCenters.includes(String(bookingData.centerId))
+        return Array.isArray(availableCenters) && availableCenters.includes(String(bookingData.centerId));
       })
-    : services
+    : services;
 
-  const selectedService = services.find((s) => String(s.id) === String(bookingData.serviceId))
-  const selectedCenter = centers.find((c) => String(c.id) === String(bookingData.centerId))
+  const selectedService = services.find((s) => String(s.id) === String(bookingData.serviceId));
+  const selectedCenter = centers.find((c) => String(c.id) === String(bookingData.centerId));
 
   const timeSlots = [
     "09:00",
@@ -148,42 +148,42 @@ export default function BookPage() {
     "16:00",
     "16:30",
     "17:00",
-  ]
+  ];
 
   const handleNext = () => {
-    setError("")
+    setError("");
 
     if (step === 1 && !bookingData.city) {
-      setError("Please select a city")
-      return
+      setError("Please select a city");
+      return;
     }
     if (step === 2 && !bookingData.centerId) {
-      setError("Please select a center")
-      return
+      setError("Please select a center");
+      return;
     }
     if (step === 3 && !bookingData.serviceId) {
-      setError("Please select a service")
-      return
+      setError("Please select a service");
+      return;
     }
     if (step === 4 && (!bookingData.date || !bookingData.time)) {
-      setError("Please select date and time")
-      return
+      setError("Please select date and time");
+      return;
     }
     if (step === 5) {
       if (!bookingData.patientName || !bookingData.patientPhone) {
-        setError("Please fill in all required fields")
-        return
+        setError("Please fill in all required fields");
+        return;
       }
-      handleBooking()
-      return
+      handleBooking();
+      return;
     }
 
-    setStep(step + 1)
-  }
+    setStep(step + 1);
+  };
 
   const handleBooking = async () => {
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     try {
       const response = await fetch("/api/bookings", {
@@ -193,24 +193,24 @@ export default function BookPage() {
           ...bookingData,
           totalAmount: selectedService?.price || 0,
         }),
-      })
+      });
 
       if (response.ok) {
-        const booking = await response.json()
+        const booking = await response.json();
         toast({
           title: "Booking Confirmed!",
           description: "Your appointment has been booked successfully",
-        })
-        router.push(`/confirm/${booking.id}`)
+        });
+        router.push(`/confirm/${booking.id}`);
       } else {
-        setError("Failed to create booking. Please try again.")
+        setError("Failed to create booking. Please try again.");
       }
     } catch (error) {
-      setError("Something went wrong. Please try again.")
+      setError("Something went wrong. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const steps = [
   { id: 1, title: "Select City", completed: !!bookingData.city },
@@ -218,7 +218,7 @@ export default function BookPage() {
   { id: 3, title: "Select Service", completed: !!bookingData.serviceId },
   { id: 4, title: "Pick Date & Time", completed: !!bookingData.date && !!bookingData.time },
   { id: 5, title: "Patient Details", completed: false },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -590,5 +590,5 @@ export default function BookPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

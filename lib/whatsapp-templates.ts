@@ -1,4 +1,4 @@
-import { config } from "./config"
+import { config } from "./config";
 
 interface WhatsAppTemplate {
   name: string
@@ -10,9 +10,9 @@ interface WhatsAppTemplate {
 }
 
 class WhatsAppTemplateService {
-  private baseUrl = "https://graph.facebook.com/v18.0"
-  private token = config.communication.whatsapp.token
-  private phoneNumberId = config.communication.whatsapp.phoneNumberId
+  private baseUrl = "https://graph.facebook.com/v18.0";
+  private token = config.communication.whatsapp.token;
+  private phoneNumberId = config.communication.whatsapp.phoneNumberId;
 
   async sendTemplateMessage(to: string, template: WhatsAppTemplate): Promise<boolean> {
     try {
@@ -28,20 +28,20 @@ class WhatsAppTemplateService {
           type: "template",
           template,
         }),
-      })
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        console.error("WhatsApp template error:", error)
-        return false
+        const error = await response.json();
+        console.error("WhatsApp template error:", error);
+        return false;
       }
 
-      const result = await response.json()
-      console.log("WhatsApp message sent:", result)
-      return true
+      const result = await response.json();
+      console.log("WhatsApp message sent:", result);
+      return true;
     } catch (error) {
-      console.error("WhatsApp send error:", error)
-      return false
+      console.error("WhatsApp send error:", error);
+      return false;
     }
   }
 
@@ -58,7 +58,7 @@ class WhatsAppTemplateService {
           ],
         },
       ],
-    })
+    });
   }
 
   async sendBookingConfirmationTemplate(
@@ -86,7 +86,7 @@ class WhatsAppTemplateService {
           ],
         },
       ],
-    })
+    });
   }
 
   async sendReportReadyTemplate(phone: string, bookingId: string): Promise<boolean> {
@@ -99,7 +99,7 @@ class WhatsAppTemplateService {
           parameters: [{ type: "text", text: bookingId }],
         },
       ],
-    })
+    });
   }
 
   async sendReminderTemplate(
@@ -123,7 +123,7 @@ class WhatsAppTemplateService {
           ],
         },
       ],
-    })
+    });
   }
 
   // Create templates via API (run once during setup)
@@ -173,7 +173,7 @@ class WhatsAppTemplateService {
           },
         ],
       },
-    ]
+    ];
 
     for (const template of templates) {
       try {
@@ -187,19 +187,19 @@ class WhatsAppTemplateService {
             },
             body: JSON.stringify(template),
           },
-        )
+        );
 
         if (response.ok) {
-          console.log(`✅ Template ${template.name} created successfully`)
+          console.log(`✅ Template ${template.name} created successfully`);
         } else {
-          const error = await response.json()
-          console.error(`❌ Failed to create template ${template.name}:`, error)
+          const error = await response.json();
+          console.error(`❌ Failed to create template ${template.name}:`, error);
         }
       } catch (error) {
-        console.error(`❌ Error creating template ${template.name}:`, error)
+        console.error(`❌ Error creating template ${template.name}:`, error);
       }
     }
   }
 }
 
-export const whatsappTemplates = new WhatsAppTemplateService()
+export const whatsappTemplates = new WhatsAppTemplateService();

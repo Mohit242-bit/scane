@@ -1,50 +1,50 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { getCurrentUser, type User } from "@/lib/auth"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { User as UserIcon, Phone, Mail, Calendar, MapPin, Edit2, Save, X } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import AuthGuard from "@/components/auth-guard"
-import LoadingSpinner from "@/components/loading-spinner"
-import { createClient } from "@/lib/supabase-browser"
+import { useState, useEffect } from "react";
+import { getCurrentUser, type User } from "@/lib/auth";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { User as UserIcon, Phone, Mail, Calendar, MapPin, Edit2, Save, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import AuthGuard from "@/components/auth-guard";
+import LoadingSpinner from "@/components/loading-spinner";
+import { createClient } from "@/lib/supabase-browser";
 
 export default function ProfilePage() {
-  const { toast } = useToast()
-  const supabase = createClient()
+  const { toast } = useToast();
+  const supabase = createClient();
   
-  const [user, setUser] = useState<User | null>(null)
-  const [editing, setEditing] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState<User | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-  })
+  });
 
   useEffect(() => {
     const loadUser = async () => {
-      const currentUser = await getCurrentUser()
-      setUser(currentUser)
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
       if (currentUser) {
         setFormData({
           name: currentUser.name || "",
           email: currentUser.email || "",
-        })
+        });
       }
-    }
-    loadUser()
-  }, [])
+    };
+    loadUser();
+  }, []);
 
   const handleSave = async () => {
-    if (!user) return
+    if (!user) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
       // Update user profile in database
       const { error } = await supabase
@@ -54,10 +54,10 @@ export default function ProfilePage() {
           email: formData.email,
           updated_at: new Date().toISOString()
         })
-        .eq("id", user.id)
+        .eq("id", user.id);
 
       if (error) {
-        throw error
+        throw error;
       }
 
       // Update local user state
@@ -65,31 +65,31 @@ export default function ProfilePage() {
         ...user,
         name: formData.name,
         email: formData.email,
-      })
+      });
 
-      setEditing(false)
+      setEditing(false);
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
-      })
+      });
     } catch (error: any) {
       toast({
         title: "Update failed",
         description: error.message || "Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCancel = () => {
     setFormData({
       name: user?.name || "",
       email: user?.email || "",
-    })
-    setEditing(false)
-  }
+    });
+    setEditing(false);
+  };
 
   return (
     <AuthGuard>
@@ -248,5 +248,5 @@ export default function ProfilePage() {
         </div>
       </div>
     </AuthGuard>
-  )
+  );
 }

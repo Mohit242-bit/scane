@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { createClient } from "@/lib/supabase-browser"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
-import { Chrome, Mail, Building2, AlertCircle } from "lucide-react"
+import { useState } from "react";
+import { createClient } from "@/lib/supabase-browser";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { Chrome, Mail, Building2, AlertCircle } from "lucide-react";
 
 export default function PartnerLoginPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [showSignUp, setShowSignUp] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [signUpData, setSignUpData] = useState({
     name: "",
     email: "",
@@ -27,126 +27,126 @@ export default function PartnerLoginPage() {
     address: "",
     city: "",
     password: ""
-  })
-  const [error, setError] = useState("")
-  const router = useRouter()
-  const { toast } = useToast()
-  const supabase = createClient()
+  });
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const { toast } = useToast();
+  const supabase = createClient();
 
   const handleGoogleLogin = async () => {
     try {
-      setIsLoading(true)
-      setError("")
+      setIsLoading(true);
+      setError("");
       
-      console.log("Initiating Google OAuth with redirect:", `${window.location.origin}/api/auth/callback?redirectTo=/partner/dashboard`)
+      console.log("Initiating Google OAuth with redirect:", `${window.location.origin}/api/auth/callback?redirectTo=/partner/dashboard`);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/api/auth/callback?redirectTo=/partner/dashboard`,
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
+            access_type: "offline",
+            prompt: "consent"
           }
         }
-      })
+      });
       
-      console.log("OAuth response:", { data, error })
+      console.log("OAuth response:", { data, error });
       
       if (error) {
-        console.error("OAuth error:", error)
-        setError("Failed to login with Google: " + error.message)
-        return
+        console.error("OAuth error:", error);
+        setError("Failed to login with Google: " + error.message);
+        return;
       }
       
       // Redirect handled by OAuth flow
     } catch (error) {
-      console.error("Google login error:", error)
-      setError("An error occurred during login")
+      console.error("Google login error:", error);
+      setError("An error occurred during login");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
     if (!email || !password) {
-      setError("Please fill in all fields")
-      return
+      setError("Please fill in all fields");
+      return;
     }
 
     try {
-      setIsLoading(true)
-      setError("")
+      setIsLoading(true);
+      setError("");
 
       // Sign in with Supabase Auth
       const { error: authError } = await supabase.auth.signInWithPassword({
         email: email,
         password: password
-      })
+      });
 
       if (authError) {
-        setError("Invalid email or password")
-        return
+        setError("Invalid email or password");
+        return;
       }
 
       // Check if user has partner role in their metadata or profile
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        setError("Authentication failed")
-        return
+        setError("Authentication failed");
+        return;
       }
 
       // Check if partner profile exists
-      const profileResponse = await fetch('/api/partner/profile', {
+      const profileResponse = await fetch("/api/partner/profile", {
         headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         }
-      })
+      });
 
       if (profileResponse.status === 404) {
         // No partner profile, redirect to onboarding
-        router.push("/partner/onboarding")
-        return
+        router.push("/partner/onboarding");
+        return;
       }
 
       if (!profileResponse.ok) {
-        setError("Unable to verify partner status")
-        return
+        setError("Unable to verify partner status");
+        return;
       }
 
-      router.push("/partner/dashboard")
+      router.push("/partner/dashboard");
       toast({
         title: "Login successful",
         description: "Welcome to your partner dashboard!"
-      })
+      });
     } catch (error) {
-      console.error("Email login error:", error)
-      setError("An error occurred during login")
+      console.error("Email login error:", error);
+      setError("An error occurred during login");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
-    const { name, email, phone, businessName, businessEmail, address, city, password } = signUpData
+    const { name, email, phone, businessName, businessEmail, address, city, password } = signUpData;
     
     if (!name || !email || !phone || !businessName || !businessEmail || !address || !city || !password) {
-      setError("Please fill in all required fields")
-      return
+      setError("Please fill in all required fields");
+      return;
     }
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long")
-      return
+      setError("Password must be at least 6 characters long");
+      return;
     }
 
     try {
-      setIsLoading(true)
-      setError("")
+      setIsLoading(true);
+      setError("");
 
       // Create auth user with real password
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -156,19 +156,19 @@ export default function PartnerLoginPage() {
           data: {
             full_name: name,
             phone: phone,
-            role: 'partner'
+            role: "partner"
           }
         }
-      })
+      });
 
       if (authError) {
-        setError("Failed to create account: " + authError.message)
-        return
+        setError("Failed to create account: " + authError.message);
+        return;
       }
 
       if (!authData.user) {
-        setError("Failed to create user account")
-        return
+        setError("Failed to create user account");
+        return;
       }
 
       // Insert partner profile in Supabase
@@ -196,9 +196,9 @@ export default function PartnerLoginPage() {
       toast({
         title: "Account created successfully",
         description: "Please check your email to verify your account, then complete your partner onboarding."
-      })
+      });
       
-      setShowSignUp(false)
+      setShowSignUp(false);
       setSignUpData({
         name: "",
         email: "",
@@ -209,23 +209,23 @@ export default function PartnerLoginPage() {
         address: "",
         city: "",
         password: ""
-      })
+      });
     } catch (error) {
-      console.error("Sign up error:", error)
-      setError("An error occurred during sign up")
+      console.error("Sign up error:", error);
+      setError("An error occurred during sign up");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (showSignUp) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0AA1A7]/5 to-[#B7F171]/5 flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold text-[#0B1B2B]">Partner Sign Up</CardTitle>
+            <CardTitle className="text-3xl font-bold text-[#0B1B2B]">Doctor Sign Up</CardTitle>
             <CardDescription className="text-lg">
-              Join Scanezy as a healthcare partner
+              Join Scanezy as a medical professional
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -360,8 +360,8 @@ export default function PartnerLoginPage() {
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    setShowSignUp(false)
-                    setError("")
+                    setShowSignUp(false);
+                    setError("");
                   }}
                   disabled={isLoading}
                 >
@@ -372,7 +372,7 @@ export default function PartnerLoginPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -380,9 +380,9 @@ export default function PartnerLoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <Building2 className="h-12 w-12 text-[#0AA1A7] mx-auto mb-4" />
-          <CardTitle className="text-3xl font-bold text-[#0B1B2B]">Partner Login</CardTitle>
+          <CardTitle className="text-3xl font-bold text-[#0B1B2B]">Doctor Portal Login</CardTitle>
           <CardDescription className="text-lg">
-            Access your healthcare partner dashboard
+            Access your medical center dashboard
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -449,23 +449,23 @@ export default function PartnerLoginPage() {
 
           <div className="text-center">
             <p className="text-sm text-[#5B6B7A] mb-3">
-              Don't have a partner account?
+              Don't have a doctor account?
             </p>
             <Button
               variant="outline"
               onClick={() => {
-                setShowSignUp(true)
-                setError("")
+                setShowSignUp(true);
+                setError("");
               }}
               className="w-full"
               disabled={isLoading}
             >
               <Building2 className="mr-2 h-4 w-4" />
-              Sign up as Partner
+              Sign up as Doctor
             </Button>
           </div>
 
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === "development" && (
             <div className="text-center pt-4 border-t">
               <p className="text-sm text-[#5B6B7A] mb-2">Development Mode</p>
               <Button
@@ -481,5 +481,5 @@ export default function PartnerLoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

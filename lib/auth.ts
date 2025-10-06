@@ -3,13 +3,13 @@
  * Handles user authentication operations using Supabase Auth
  */
 
-import { createClient } from './supabase-browser'
-import { logger } from './logger'
-import { AuthenticationError } from './errors'
-import type { UserRole } from './types'
+import { createClient } from "./supabase-browser";
+import { logger } from "./logger";
+import { AuthenticationError } from "./errors";
+import type { UserRole } from "./types";
 
 // Create browser client for auth operations
-const supabase = createClient()
+const supabase = createClient();
 
 /**
  * Application user interface
@@ -46,45 +46,45 @@ interface SignUpOptions {
  */
 export async function getCurrentUser(): Promise<User | null> {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error) {
-      logger.error('Error getting current user', error)
-      return null
+      logger.error("Error getting current user", error);
+      return null;
     }
 
     if (!user) {
-      return null
+      return null;
     }
 
     // Fetch additional user data from database
     const { data: userData, error: dbError } = await supabase
-      .from('users')
-      .select('id, full_name, phone, role')
-      .eq('auth_provider_id', user.id)
-      .single()
+      .from("users")
+      .select("id, full_name, phone, role")
+      .eq("auth_provider_id", user.id)
+      .single();
 
     if (dbError) {
-      logger.warn('Error fetching user data from database', {
+      logger.warn("Error fetching user data from database", {
         error: dbError.message,
         userId: user.id,
-      })
+      });
     }
 
     const appUser: User = {
       id: user.id,
       email: user.email,
-      name: userData?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || null,
+      name: userData?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || null,
       phone: userData?.phone || user.user_metadata?.phone || null,
-      role: (userData?.role as UserRole) || 'customer',
-    }
+      role: (userData?.role as UserRole) || "customer",
+    };
 
-    logger.debug('Current user retrieved', { userId: appUser.id, role: appUser.role })
+    logger.debug("Current user retrieved", { userId: appUser.id, role: appUser.role });
 
-    return appUser
+    return appUser;
   } catch (error) {
-    logger.error('Unexpected error getting current user', error)
-    return null
+    logger.error("Unexpected error getting current user", error);
+    return null;
   }
 }
 
@@ -94,24 +94,24 @@ export async function getCurrentUser(): Promise<User | null> {
  */
 export async function signInWithGoogle(): Promise<void> {
   try {
-    logger.info('Initiating Google OAuth sign-in')
+    logger.info("Initiating Google OAuth sign-in");
 
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback`,
       },
-    })
+    });
     
     if (error) {
-      logger.error('Google OAuth sign-in error', error)
-      throw new AuthenticationError('Failed to sign in with Google')
+      logger.error("Google OAuth sign-in error", error);
+      throw new AuthenticationError("Failed to sign in with Google");
     }
 
-    logger.info('Google OAuth flow initiated successfully')
+    logger.info("Google OAuth flow initiated successfully");
   } catch (error) {
-    logger.error('Google sign-in error', error)
-    throw error
+    logger.error("Google sign-in error", error);
+    throw error;
   }
 }
 
@@ -122,24 +122,24 @@ export async function signInWithGoogle(): Promise<void> {
  */
 export async function signInWithEmail(options: SignInOptions) {
   try {
-    logger.info('Attempting email/password sign-in', { email: options.email })
+    logger.info("Attempting email/password sign-in", { email: options.email });
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: options.email,
       password: options.password,
-    })
+    });
     
     if (error) {
-      logger.error('Email sign-in error', error, { email: options.email })
-      throw new AuthenticationError('Invalid email or password')
+      logger.error("Email sign-in error", error, { email: options.email });
+      throw new AuthenticationError("Invalid email or password");
     }
 
-    logger.info('Email sign-in successful', { userId: data.user?.id })
+    logger.info("Email sign-in successful", { userId: data.user?.id });
     
-    return data
+    return data;
   } catch (error) {
-    logger.error('Sign-in error', error)
-    throw error
+    logger.error("Sign-in error", error);
+    throw error;
   }
 }
 
@@ -150,30 +150,30 @@ export async function signInWithEmail(options: SignInOptions) {
  */
 export async function signUpWithEmail(options: SignUpOptions) {
   try {
-    logger.info('Creating new user account', { email: options.email })
+    logger.info("Creating new user account", { email: options.email });
 
     const { data, error } = await supabase.auth.signUp({
       email: options.email,
       password: options.password,
       options: {
         data: {
-          name: options.name || options.email.split('@')[0],
+          name: options.name || options.email.split("@")[0],
           phone: options.phone,
         },
       },
-    })
+    });
     
     if (error) {
-      logger.error('Sign-up error', error, { email: options.email })
-      throw new AuthenticationError('Failed to create account')
+      logger.error("Sign-up error", error, { email: options.email });
+      throw new AuthenticationError("Failed to create account");
     }
 
-    logger.info('User account created successfully', { userId: data.user?.id })
+    logger.info("User account created successfully", { userId: data.user?.id });
     
-    return data
+    return data;
   } catch (error) {
-    logger.error('Sign-up error', error)
-    throw error
+    logger.error("Sign-up error", error);
+    throw error;
   }
 }
 
@@ -183,19 +183,19 @@ export async function signUpWithEmail(options: SignUpOptions) {
  */
 export async function signOut(): Promise<void> {
   try {
-    logger.info('Signing out user')
+    logger.info("Signing out user");
 
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut();
     
     if (error) {
-      logger.error('Sign-out error', error)
-      throw new AuthenticationError('Failed to sign out')
+      logger.error("Sign-out error", error);
+      throw new AuthenticationError("Failed to sign out");
     }
 
-    logger.info('User signed out successfully')
+    logger.info("User signed out successfully");
   } catch (error) {
-    logger.error('Sign-out error', error)
-    throw error
+    logger.error("Sign-out error", error);
+    throw error;
   }
 }
 
@@ -205,7 +205,7 @@ export async function signOut(): Promise<void> {
  * @returns true if user is an admin
  */
 export function isAdmin(user: User | null): boolean {
-  return user?.role === 'admin'
+  return user?.role === "admin";
 }
 
 /**
@@ -214,7 +214,7 @@ export function isAdmin(user: User | null): boolean {
  * @returns true if user is a partner
  */
 export function isPartner(user: User | null): boolean {
-  return user?.role === 'partner'
+  return user?.role === "partner";
 }
 
 /**
@@ -223,7 +223,7 @@ export function isPartner(user: User | null): boolean {
  * @returns true if user is a customer
  */
 export function isCustomer(user: User | null): boolean {
-  return user?.role === 'customer'
+  return user?.role === "customer";
 }
 
 /**
@@ -233,7 +233,7 @@ export function isCustomer(user: User | null): boolean {
  */
 export function requireAuth(user: User | null): asserts user is User {
   if (!user) {
-    throw new AuthenticationError('Authentication required')
+    throw new AuthenticationError("Authentication required");
   }
 }
 
@@ -244,11 +244,11 @@ export function requireAuth(user: User | null): asserts user is User {
  * @throws AuthenticationError if user doesn't have the required role
  */
 export function requireRole(user: User | null, role: UserRole): asserts user is User {
-  requireAuth(user)
+  requireAuth(user);
   
   if (user.role !== role) {
-    logger.warn('User lacks required role', { userId: user.id, hasRole: user.role, requiredRole: role })
-    throw new AuthenticationError(`${role} access required`)
+    logger.warn("User lacks required role", { userId: user.id, hasRole: user.role, requiredRole: role });
+    throw new AuthenticationError(`${role} access required`);
   }
 }
 

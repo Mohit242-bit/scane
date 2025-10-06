@@ -1,33 +1,33 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
-import { getCurrentUser } from "@/lib/auth"
-import { createClient } from "@/lib/supabase-browser"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { getCurrentUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase-browser";
 
 const steps = [
   { id: 1, title: "Business Information", description: "Tell us about your business" },
   { id: 2, title: "Center Details", description: "Add your center information" },
   { id: 3, title: "Services & Pricing", description: "Configure your services" },
   { id: 4, title: "Verification", description: "Complete your setup" }
-]
+];
 
 export default function OnboardingWizard() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const supabase = createClient()
+  const router = useRouter();
+  const { toast } = useToast();
+  const supabase = createClient();
   
-  const [currentStep, setCurrentStep] = useState(1)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Form data
   const [businessData, setBusinessData] = useState({
@@ -37,7 +37,7 @@ export default function OnboardingWizard() {
     pan_number: "",
     phone: "",
     full_name: ""
-  })
+  });
 
   const [centerData, setCenterData] = useState({
     name: "",
@@ -61,9 +61,9 @@ export default function OnboardingWizard() {
       saturday: { open: "09:00", close: "18:00", closed: false },
       sunday: { open: "09:00", close: "18:00", closed: true }
     }
-  })
+  });
 
-  const [selectedServices, setSelectedServices] = useState<any[]>([])
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
 
   const availableServices = [
     { id: "xray", name: "X-Ray", category: "Imaging", price: 800 },
@@ -72,57 +72,57 @@ export default function OnboardingWizard() {
     { id: "ultrasound", name: "Ultrasound", category: "Imaging", price: 2500 },
     { id: "blood-test", name: "Blood Tests", category: "Laboratory", price: 500 },
     { id: "ecg", name: "ECG/EKG", category: "Cardiology", price: 300 },
-  ]
+  ];
 
   const nextStep = () => {
     if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(currentStep + 1);
     }
-  }
+  };
 
   const prevStep = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
+  };
 
   const handleBusinessSubmit = async () => {
     if (!businessData.business_name || !businessData.phone) {
-      setError("Please fill in all required fields")
-      return
+      setError("Please fill in all required fields");
+      return;
     }
-    setError("")
-    nextStep()
-  }
+    setError("");
+    nextStep();
+  };
 
   const handleCenterSubmit = async () => {
     if (!centerData.name || !centerData.address || !centerData.city) {
-      setError("Please fill in all required fields")
-      return
+      setError("Please fill in all required fields");
+      return;
     }
-    setError("")
-    nextStep()
-  }
+    setError("");
+    nextStep();
+  };
 
   const handleServicesSubmit = async () => {
     if (selectedServices.length === 0) {
-      setError("Please select at least one service")
-      return
+      setError("Please select at least one service");
+      return;
     }
-    setError("")
-    nextStep()
-  }
+    setError("");
+    nextStep();
+  };
 
   const handleFinalSubmit = async () => {
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     try {
-      const user = await getCurrentUser()
-      if (!user) throw new Error("Not authenticated")
+      const user = await getCurrentUser();
+      if (!user) throw new Error("Not authenticated");
 
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error("No session")
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No session");
 
       // 1. Create partner profile
       const profileResponse = await fetch("/api/partner/profile", {
@@ -132,10 +132,10 @@ export default function OnboardingWizard() {
           "Authorization": `Bearer ${session.access_token}`
         },
         body: JSON.stringify(businessData)
-      })
+      });
 
       if (!profileResponse.ok) {
-        throw new Error("Failed to create partner profile")
+        throw new Error("Failed to create partner profile");
       }
 
       // 2. Create center
@@ -146,13 +146,13 @@ export default function OnboardingWizard() {
           "Authorization": `Bearer ${session.access_token}`
         },
         body: JSON.stringify(centerData)
-      })
+      });
 
       if (!centerResponse.ok) {
-        throw new Error("Failed to create center")
+        throw new Error("Failed to create center");
       }
 
-      const { center } = await centerResponse.json()
+      const { center } = await centerResponse.json();
 
       // 3. Add services to center
       for (const service of selectedServices) {
@@ -163,23 +163,23 @@ export default function OnboardingWizard() {
             service_id: service.id,
             price: service.price,
             is_available: true
-          })
+          });
       }
 
       toast({
         title: "Onboarding Complete!",
         description: "Welcome to Scanezy partner program.",
-      })
+      });
 
-      router.push("/partner/dashboard")
+      router.push("/partner/dashboard");
     } catch (error: any) {
-      setError(error.message)
+      setError(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const progress = (currentStep / steps.length) * 100
+  const progress = (currentStep / steps.length) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -407,9 +407,9 @@ export default function OnboardingWizard() {
                         }`}
                         onClick={() => {
                           if (selectedServices.find(s => s.id === service.id)) {
-                            setSelectedServices(selectedServices.filter(s => s.id !== service.id))
+                            setSelectedServices(selectedServices.filter(s => s.id !== service.id));
                           } else {
-                            setSelectedServices([...selectedServices, service])
+                            setSelectedServices([...selectedServices, service]);
                           }
                         }}
                       >
@@ -484,5 +484,5 @@ export default function OnboardingWizard() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

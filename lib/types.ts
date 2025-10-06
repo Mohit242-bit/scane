@@ -40,17 +40,17 @@ export interface Center {
 /**
  * Booking status types
  */
-export type BookingStatus = 'confirmed' | 'pending' | 'cancelled' | 'completed'
+export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed"
 
 /**
  * Payment status types
  */
-export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded"
 
 /**
  * Gender options
  */
-export type Gender = 'male' | 'female' | 'other'
+export type Gender = "male" | "female" | "other"
 
 /**
  * Represents a booking/appointment
@@ -79,7 +79,7 @@ export interface Booking {
 /**
  * Time slot status
  */
-export type SlotStatus = 'OPEN' | 'BOOKED' | 'BLOCKED'
+export type SlotStatus = "OPEN" | "BOOKED" | "BLOCKED"
 
 /**
  * Represents an available time slot for booking
@@ -103,7 +103,7 @@ export interface Slot {
 /**
  * User roles in the system
  */
-export type UserRole = 'customer' | 'partner' | 'admin'
+export type UserRole = "customer" | "partner" | "admin"
 
 /**
  * Represents a user in the system
@@ -138,7 +138,7 @@ export interface Partner {
   user_id: string
   business_name: string
   registration_number?: string
-  status: 'pending' | 'approved' | 'rejected' | 'suspended'
+  status: "pending" | "approved" | "rejected" | "suspended"
   verified: boolean
   created_at: string
   updated_at: string
@@ -159,7 +159,7 @@ export interface Review {
 /**
  * Document types
  */
-export type DocumentType = 'PRESCRIPTION' | 'REPORT' | 'INVOICE' | 'ID_PROOF'
+export type DocumentType = "PRESCRIPTION" | "REPORT" | "INVOICE" | "ID_PROOF"
 
 /**
  * Uploaded document information

@@ -1,27 +1,27 @@
-import { NextRequest, NextResponse } from "next/server"
-import jwt from "jsonwebtoken"
-import supabase from "@/lib/supabaseClient"
+import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import supabase from "@/lib/supabaseClient";
 
 // Force dynamic rendering for this API route
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // Helper function to verify admin auth
 function verifyAdminAuth(request: NextRequest) {
-  const token = request.cookies.get("mvp_admin")?.value
+  const token = request.cookies.get("mvp_admin")?.value;
   
   if (!token) {
-    throw new Error("No admin token")
+    throw new Error("No admin token");
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.ADMIN_MVP_SECRET!) as any
+    const decoded = jwt.verify(token, process.env.ADMIN_MVP_SECRET!) as any;
     if (decoded.role !== "admin") {
-      throw new Error("Not admin role")
+      throw new Error("Not admin role");
     }
-    return decoded
+    return decoded;
   } catch (error) {
-    throw new Error("Invalid token")
+    throw new Error("Invalid token");
   }
 }
 
@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
   try {
     // Check admin authentication
     try {
-      verifyAdminAuth(request)
+      verifyAdminAuth(request);
     } catch (error) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Fetch various stats in parallel
@@ -48,16 +48,16 @@ export async function GET(request: NextRequest) {
       supabase.from("partners").select("id, status, created_at"),
       supabase.from("services").select("id, is_active, price"),
       supabase.from("centers").select("id, is_active")
-    ])
+    ]);
 
     if (bookingsError || usersError || partnersError || servicesError || centersError) {
-      console.error("Error fetching stats:", { bookingsError, usersError, partnersError, servicesError, centersError })
-      return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 })
+      console.error("Error fetching stats:", { bookingsError, usersError, partnersError, servicesError, centersError });
+      return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 });
     }
 
     // Calculate stats
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const stats = {
       totalBookings: bookings?.length || 0,
@@ -82,11 +82,11 @@ export async function GET(request: NextRequest) {
       totalRevenue: bookings?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0,
       avgBookingValue: bookings?.length ? 
         (bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0) / bookings.length) : 0
-    }
+    };
 
-    return NextResponse.json(stats)
+    return NextResponse.json(stats);
   } catch (error) {
-    console.error("Admin stats error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Admin stats error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

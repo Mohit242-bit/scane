@@ -1,4 +1,4 @@
-import type { Booking } from "./types"
+import type { Booking } from "./types";
 
 // Mock database implementation for development
 export interface User {
@@ -61,20 +61,20 @@ const memoryDB: DB = (globalThis as any).__db || {
   documents: [],
   heldSlots: new Map(),
 }
-;(globalThis as any).__db = memoryDB
+;(globalThis as any).__db = memoryDB;
 
-export const db = memoryDB
+export const db = memoryDB;
 
 export function getBookingById(id: string): Booking | null {
-  return db.bookings.find((b) => b.id === id) || null
+  return db.bookings.find((b) => b.id === id) || null;
 }
 
 export function getReviewsByBookingId(bookingId: string) {
-  return db.reviews.filter((r) => r.booking_id === bookingId)
+  return db.reviews.filter((r) => r.booking_id === bookingId);
 }
 
 export function getDocumentsByBookingId(bookingId: string) {
-  return db.documents.filter((d) => d.booking_id === bookingId)
+  return db.documents.filter((d) => d.booking_id === bookingId);
 }
 
 // Mock Redis interface - required for rate limiting
@@ -85,10 +85,10 @@ export const redis = {
   exists: async (key: string) => 0,
   incr: async (key: string) => 1,
   expire: async (key: string, seconds: number) => 1,
-}
+};
 
 // In-memory storage
-const users: User[] = []
+const users: User[] = [];
 const services: Service[] = [
   {
     id: "1",
@@ -126,7 +126,7 @@ const services: Service[] = [
     category: "Ultrasound",
     preparation: "Fasting for 8 hours, drink water 1 hour before",
   },
-]
+];
 
 const centers: Center[] = [
   {
@@ -156,55 +156,55 @@ const centers: Center[] = [
     services: ["1", "2", "3", "4"],
     coordinates: { lat: 12.9698, lng: 77.75 },
   },
-]
+];
 
 // Mock database operations
 export const databaseOperations = {
   users: {
     findByPhone: async (phone: string): Promise<User | null> => {
-      return users.find((u) => u.phone === phone) || null
+      return users.find((u) => u.phone === phone) || null;
     },
     findByEmail: async (email: string): Promise<User | null> => {
-      return users.find((u) => u.email === email) || null
+      return users.find((u) => u.email === email) || null;
     },
     findById: async (id: string): Promise<User | null> => {
-      return users.find((u) => u.id === id) || null
+      return users.find((u) => u.id === id) || null;
     },
     create: async (data: Omit<User, "id" | "createdAt">): Promise<User> => {
       const user: User = {
         id: Math.random().toString(36).substr(2, 9),
         ...data,
         createdAt: new Date(),
-      }
-      users.push(user)
-      return user
+      };
+      users.push(user);
+      return user;
     },
   },
   services: {
     findAll: async (): Promise<Service[]> => services,
     findById: async (id: string): Promise<Service | null> => {
-      return services.find((s) => s.id === id) || null
+      return services.find((s) => s.id === id) || null;
     },
     findByCategory: async (category: string): Promise<Service[]> => {
-      return services.filter((s) => s.category === category)
+      return services.filter((s) => s.category === category);
     },
   },
   centers: {
     findAll: async (): Promise<Center[]> => centers,
     findById: async (id: string): Promise<Center | null> => {
-      return centers.find((c) => c.id === id) || null
+      return centers.find((c) => c.id === id) || null;
     },
     findByService: async (serviceId: string): Promise<Center[]> => {
-      return centers.filter((c) => c.services.includes(serviceId))
+      return centers.filter((c) => c.services.includes(serviceId));
     },
   },
   bookings: {
     findAll: async (): Promise<Booking[]> => db.bookings,
     findById: async (id: string): Promise<Booking | null> => {
-      return getBookingById(id)
+      return getBookingById(id);
     },
     findByUserId: async (userId: string): Promise<Booking[]> => {
-      return db.bookings.filter((b) => b.serviceId === userId) // Note: using serviceId as fallback since no userId
+      return db.bookings.filter((b) => b.serviceId === userId); // Note: using serviceId as fallback since no userId
     },
     create: async (data: Omit<Booking, "id" | "createdAt" | "updatedAt">): Promise<Booking> => {
       const booking: Booking = {
@@ -212,19 +212,19 @@ export const databaseOperations = {
         ...data,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }
-      db.bookings.push(booking)
-      return booking
+      };
+      db.bookings.push(booking);
+      return booking;
     },
     update: async (id: string, data: Partial<Booking>): Promise<Booking | null> => {
-      const index = db.bookings.findIndex((b) => b.id === id)
-      if (index === -1) return null
+      const index = db.bookings.findIndex((b) => b.id === id);
+      if (index === -1) return null;
       db.bookings[index] = {
         ...db.bookings[index],
         ...data,
         updatedAt: new Date().toISOString(),
-      }
-      return db.bookings[index]
+      };
+      return db.bookings[index];
     },
   },
   reviews: {
@@ -233,9 +233,9 @@ export const databaseOperations = {
         id: Math.random().toString(36).substr(2, 9),
         ...data,
         created_ts: Date.now(),
-      }
-      db.reviews.push(review)
-      return review
+      };
+      db.reviews.push(review);
+      return review;
     },
   },
   documents: {
@@ -244,20 +244,20 @@ export const databaseOperations = {
         id: Math.random().toString(36).substr(2, 9),
         ...data,
         uploaded_ts: Date.now(),
-      }
-      db.documents.push(document)
-      return document
+      };
+      db.documents.push(document);
+      return document;
     },
   },
   heldSlots: {
     create: async (slotId: string, bookingId: string, expiresAt: number): Promise<void> => {
-      db.heldSlots.set(slotId, { bookingId, expiresAt })
+      db.heldSlots.set(slotId, { bookingId, expiresAt });
     },
     delete: async (slotId: string): Promise<void> => {
-      db.heldSlots.delete(slotId)
+      db.heldSlots.delete(slotId);
     },
     find: async (slotId: string): Promise<{ bookingId: string; expiresAt: number } | undefined> => {
-      return db.heldSlots.get(slotId)
+      return db.heldSlots.get(slotId);
     },
   },
-}
+};

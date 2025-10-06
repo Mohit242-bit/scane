@@ -1,12 +1,12 @@
-"use client"
+﻿"use client";
 
-import { useState, useMemo, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { MapPin, Phone, Clock, Star, Search, Users, Loader2 } from "lucide-react"
-import Link from "next/link"
+import { useState, useMemo, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Phone, Clock, Star, Search, Users, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 interface Center {
   id: number
@@ -32,34 +32,34 @@ interface Center {
 }
 
 export default function CentersPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [centers, setCenters] = useState<Center[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [centers, setCenters] = useState<Center[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch centers data from Supabase
   useEffect(() => {
     async function fetchCenters() {
       try {
-        setLoading(true)
-        const response = await fetch('/api/admin/centers')
-        const data = await response.json()
+        setLoading(true);
+        const response = await fetch("/api/admin/centers");
+        const data = await response.json();
         
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch centers')
+          throw new Error(data.error || "Failed to fetch centers");
         }
         
-        setCenters(data.centers || [])
+        setCenters(data.centers || []);
       } catch (err) {
-        console.error('Error fetching centers:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load centers')
+        console.error("Error fetching centers:", err);
+        setError(err instanceof Error ? err.message : "Failed to load centers");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
     
-    fetchCenters()
-  }, [])
+    fetchCenters();
+  }, []);
 
   const filteredCenters = useMemo(() => {
     return centers.filter(
@@ -67,8 +67,8 @@ export default function CentersPage() {
         center.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         center.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
         center.area_hint.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
-  }, [searchTerm, centers])
+    );
+  }, [searchTerm, centers]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -140,7 +140,7 @@ export default function CentersPage() {
                     <div className="flex flex-col items-end gap-2">
                       <div className="flex items-center bg-yellow-50 px-2 py-1 rounded">
                         <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                        <span className="font-medium">{center.rating || '4.5'}</span>
+                        <span className="font-medium">{center.rating || "4.5"}</span>
                       </div>
                       {center.stats && (
                         <div className="flex items-center bg-blue-50 px-2 py-1 rounded">
@@ -169,9 +169,9 @@ export default function CentersPage() {
                       <div className="flex items-start">
                         <Clock className="h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-gray-600">
-                          {typeof center.operating_hours === 'string' 
+                          {typeof center.operating_hours === "string" 
                             ? center.operating_hours 
-                            : '9:00 AM - 6:00 PM'}
+                            : "9:00 AM - 6:00 PM"}
                         </span>
                       </div>
                     )}
@@ -244,5 +244,5 @@ export default function CentersPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Phone, Mail, MapPin, Clock, MessageSquare, Send, CheckCircle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Phone, Mail, MapPin, Clock, MessageSquare, Send, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ContactPage() {
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,24 +23,24 @@ export default function ContactPage() {
     subject: "",
     message: "",
     inquiryType: "",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
         toast({
           title: "Message sent!",
           description: "We'll get back to you within 24 hours.",
-        })
+        });
         setFormData({
           name: "",
           email: "",
@@ -48,20 +48,20 @@ export default function ContactPage() {
           subject: "",
           message: "",
           inquiryType: "",
-        })
+        });
       } else {
-        throw new Error("Failed to send message")
+        throw new Error("Failed to send message");
       }
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const contactInfo = [
     {
@@ -92,7 +92,7 @@ export default function ContactPage() {
       description: "India - 560001",
       action: "#",
     },
-  ]
+  ];
 
   const faqs = [
     {
@@ -115,7 +115,7 @@ export default function ContactPage() {
       answer:
         "Reports are available digitally through our platform and will also be sent to your registered email address.",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -319,5 +319,5 @@ export default function ContactPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

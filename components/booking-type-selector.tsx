@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Home, 
   Building2, 
@@ -18,7 +18,7 @@ import {
   Info,
   Calendar,
   Users
-} from "lucide-react"
+} from "lucide-react";
 
 interface BookingTypeSelectorProps {
   onBookingTypeSelected: (type: BookingType) => void
@@ -27,7 +27,7 @@ interface BookingTypeSelectorProps {
 }
 
 interface BookingType {
-  type: 'home_collection' | 'lab_visit'
+  type: "home_collection" | "lab_visit"
   selectedCenter?: Center
   selectedSlot?: TimeSlot
   additionalFee?: number
@@ -87,7 +87,7 @@ const NEARBY_CENTERS: Center[] = [
     distance: "5.1 km",
     amenities: ["Express Service", "Home Collection", "Digital Reports"]
   }
-]
+];
 
 const HOME_COLLECTION_SLOTS: TimeSlot[] = [
   { id: "1", date: "Today", time: "06:00 - 08:00", available: true },
@@ -95,46 +95,46 @@ const HOME_COLLECTION_SLOTS: TimeSlot[] = [
   { id: "3", date: "Tomorrow", time: "06:00 - 08:00", available: true },
   { id: "4", date: "Tomorrow", time: "08:00 - 10:00", available: true },
   { id: "5", date: "Tomorrow", time: "18:00 - 20:00", available: true },
-]
+];
 
 export default function BookingTypeSelector({ 
   onBookingTypeSelected, 
   selectedTests, 
   userLocation 
 }: BookingTypeSelectorProps) {
-  const [bookingType, setBookingType] = useState<'home_collection' | 'lab_visit'>('lab_visit')
-  const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
-  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
-  const [showSlots, setShowSlots] = useState(false)
+  const [bookingType, setBookingType] = useState<"home_collection" | "lab_visit">("lab_visit");
+  const [selectedCenter, setSelectedCenter] = useState<Center | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [showSlots, setShowSlots] = useState(false);
 
   const homeCollectionAvailable = selectedTests.every(test => 
     test.homeCollectionAvailable !== false
-  )
+  );
 
-  const homeCollectionFee = 150
-  const totalTestAmount = selectedTests.reduce((sum, test) => sum + test.price, 0)
+  const homeCollectionFee = 150;
+  const totalTestAmount = selectedTests.reduce((sum, test) => sum + test.price, 0);
 
   const handleContinue = () => {
-    if (bookingType === 'lab_visit' && !selectedCenter) {
-      return
+    if (bookingType === "lab_visit" && !selectedCenter) {
+      return;
     }
     
-    if (bookingType === 'home_collection' && !selectedSlot) {
-      return
+    if (bookingType === "home_collection" && !selectedSlot) {
+      return;
     }
 
     onBookingTypeSelected({
       type: bookingType,
       selectedCenter: selectedCenter || undefined,
       selectedSlot: selectedSlot || undefined,
-      additionalFee: bookingType === 'home_collection' ? homeCollectionFee : 0
-    })
-  }
+      additionalFee: bookingType === "home_collection" ? homeCollectionFee : 0
+    });
+  };
 
   const handleCenterSelection = (center: Center) => {
-    setSelectedCenter(center)
-    setShowSlots(true)
-  }
+    setSelectedCenter(center);
+    setShowSlots(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -150,15 +150,15 @@ export default function BookingTypeSelector({
         </CardHeader>
         <CardContent>
           <RadioGroup value={bookingType} onValueChange={(value) => {
-            setBookingType(value as 'home_collection' | 'lab_visit')
-            setSelectedCenter(null)
-            setSelectedSlot(null)
-            setShowSlots(false)
+            setBookingType(value as "home_collection" | "lab_visit");
+            setSelectedCenter(null);
+            setSelectedSlot(null);
+            setShowSlots(false);
           }}>
             {/* Lab Visit Option */}
             <div className={`
               border rounded-lg p-6 cursor-pointer transition-all
-              ${bookingType === 'lab_visit' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}
+              ${bookingType === "lab_visit" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}
             `}>
               <div className="flex items-start space-x-3">
                 <RadioGroupItem value="lab_visit" id="lab_visit" className="mt-1" />
@@ -194,8 +194,8 @@ export default function BookingTypeSelector({
             {/* Home Collection Option */}
             <div className={`
               border rounded-lg p-6 cursor-pointer transition-all
-              ${bookingType === 'home_collection' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}
-              ${!homeCollectionAvailable ? 'opacity-50 cursor-not-allowed' : ''}
+              ${bookingType === "home_collection" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}
+              ${!homeCollectionAvailable ? "opacity-50 cursor-not-allowed" : ""}
             `}>
               <div className="flex items-start space-x-3">
                 <RadioGroupItem 
@@ -249,7 +249,7 @@ export default function BookingTypeSelector({
       </Card>
 
       {/* Center Selection for Lab Visit */}
-      {bookingType === 'lab_visit' && (
+      {bookingType === "lab_visit" && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -268,7 +268,7 @@ export default function BookingTypeSelector({
                   onClick={() => handleCenterSelection(center)}
                   className={`
                     p-4 border rounded-lg cursor-pointer transition-all
-                    ${selectedCenter?.id === center.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}
+                    ${selectedCenter?.id === center.id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}
                   `}
                 >
                   <div className="flex items-start justify-between">
@@ -314,7 +314,7 @@ export default function BookingTypeSelector({
       )}
 
       {/* Slot Selection for Home Collection */}
-      {bookingType === 'home_collection' && homeCollectionAvailable && (
+      {bookingType === "home_collection" && homeCollectionAvailable && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -333,8 +333,8 @@ export default function BookingTypeSelector({
                   onClick={() => slot.available && setSelectedSlot(slot)}
                   className={`
                     p-4 border rounded-lg cursor-pointer transition-all
-                    ${selectedSlot?.id === slot.id ? 'border-blue-500 bg-blue-50' : 
-                      slot.available ? 'border-gray-200 hover:border-gray-300' : 'border-gray-100 bg-gray-50 cursor-not-allowed'}
+                    ${selectedSlot?.id === slot.id ? "border-blue-500 bg-blue-50" : 
+                      slot.available ? "border-gray-200 hover:border-gray-300" : "border-gray-100 bg-gray-50 cursor-not-allowed"}
                   `}
                 >
                   <div className="flex items-center justify-between">
@@ -377,7 +377,7 @@ export default function BookingTypeSelector({
               </span>
             </div>
             
-            {bookingType === 'home_collection' && (
+            {bookingType === "home_collection" && (
               <div className="flex justify-between">
                 <span>Home Collection Fee:</span>
                 <span className="flex items-center">
@@ -393,17 +393,17 @@ export default function BookingTypeSelector({
               <span>Total Amount:</span>
               <span className="flex items-center text-blue-600">
                 <IndianRupee className="h-5 w-5" />
-                {(totalTestAmount + (bookingType === 'home_collection' ? homeCollectionFee : 0)).toLocaleString()}
+                {(totalTestAmount + (bookingType === "home_collection" ? homeCollectionFee : 0)).toLocaleString()}
               </span>
             </div>
 
-            {bookingType === 'lab_visit' && selectedCenter && (
+            {bookingType === "lab_visit" && selectedCenter && (
               <div className="text-sm text-gray-600 mt-4">
                 <strong>Selected Center:</strong> {selectedCenter.name}
               </div>
             )}
 
-            {bookingType === 'home_collection' && selectedSlot && (
+            {bookingType === "home_collection" && selectedSlot && (
               <div className="text-sm text-gray-600 mt-4">
                 <strong>Collection Time:</strong> {selectedSlot.date} at {selectedSlot.time}
               </div>
@@ -416,8 +416,8 @@ export default function BookingTypeSelector({
         <Button 
           onClick={handleContinue}
           disabled={
-            (bookingType === 'lab_visit' && !selectedCenter) ||
-            (bookingType === 'home_collection' && (!selectedSlot || !homeCollectionAvailable))
+            (bookingType === "lab_visit" && !selectedCenter) ||
+            (bookingType === "home_collection" && (!selectedSlot || !homeCollectionAvailable))
           }
           size="lg"
         >
@@ -425,5 +425,5 @@ export default function BookingTypeSelector({
         </Button>
       </div>
     </div>
-  )
+  );
 }

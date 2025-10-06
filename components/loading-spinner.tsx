@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface LoadingSpinnerProps {
   className?: string
@@ -10,7 +10,7 @@ export default function LoadingSpinner({ className, size = "md" }: LoadingSpinne
     sm: "h-4 w-4",
     md: "h-6 w-6",
     lg: "h-8 w-8",
-  }
+  };
 
   return (
     <div
@@ -24,5 +24,5 @@ export default function LoadingSpinner({ className, size = "md" }: LoadingSpinne
     >
       <span className="sr-only">Loading...</span>
     </div>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Stethoscope, Users, Award, Shield, Clock, MapPin, CheckCircle, Heart, Target } from "lucide-react"
-import Link from "next/link"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Stethoscope, Users, Award, Shield, Clock, MapPin, CheckCircle, Heart, Target } from "lucide-react";
+import Link from "next/link";
 
 export default function AboutPage() {
   const stats = [
@@ -10,7 +10,7 @@ export default function AboutPage() {
     { label: "Partner Centers", value: "50+", icon: MapPin },
     { label: "Services Available", value: "25+", icon: Stethoscope },
     { label: "Years of Experience", value: "5+", icon: Award },
-  ]
+  ];
 
   const values = [
     {
@@ -33,7 +33,7 @@ export default function AboutPage() {
       title: "Efficiency",
       description: "Streamlined processes that save time for both patients and healthcare providers.",
     },
-  ]
+  ];
 
   const team = [
     {
@@ -54,7 +54,7 @@ export default function AboutPage() {
       experience: "12+ years in HealthTech",
       image: "/placeholder.svg?height=200&width=200&text=Amit",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -273,5 +273,5 @@ export default function AboutPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

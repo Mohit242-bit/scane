@@ -3,32 +3,32 @@
  * Ensures all required environment variables are present and valid
  */
 
-import { z } from 'zod'
+import { z } from "zod";
 
 // Define the schema for environment variables
 const envSchema = z.object({
   // Supabase - Required
-  NEXT_PUBLIC_SUPABASE_URL: z.string().min(1, 'Supabase URL is required').refine(
-    (val) => val.startsWith('http://') || val.startsWith('https://') || val === 'your_supabase_url_here',
-    'Supabase URL must be a valid URL'
+  NEXT_PUBLIC_SUPABASE_URL: z.string().min(1, "Supabase URL is required").refine(
+    (val) => val.startsWith("http://") || val.startsWith("https://") || val === "your_supabase_url_here",
+    "Supabase URL must be a valid URL"
   ),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'Supabase anon key is required'),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "Supabase anon key is required"),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 
   // Admin - Optional
   ADMIN_MVP_USERNAME: z.string().optional(),
   ADMIN_MVP_PASSWORD: z.string().optional(),
   ADMIN_MVP_SECRET: z.string().optional().refine(
-    (val) => !val || val.length >= 32 || val === 'your_long_random_secret_minimum_32_characters',
-    'Admin secret must be at least 32 characters'
+    (val) => !val || val.length >= 32 || val === "your_long_random_secret_minimum_32_characters",
+    "Admin secret must be at least 32 characters"
   ),
 
   // OAuth - Optional
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_OAUTH_CALLBACK_URL: z.string().optional().refine(
-    (val) => !val || val.startsWith('http://') || val.startsWith('https://') || val === 'your_callback_url',
-    'OAuth callback URL must be a valid URL if provided'
+    (val) => !val || val.startsWith("http://") || val.startsWith("https://") || val === "your_callback_url",
+    "OAuth callback URL must be a valid URL if provided"
   ),
 
   // Payment - Optional
@@ -53,16 +53,16 @@ const envSchema = z.object({
   GOOGLE_ANALYTICS_ID: z.string().optional(),
   MIXPANEL_TOKEN: z.string().optional(),
   SENTRY_DSN: z.string().optional().refine(
-    (val) => !val || val.startsWith('http://') || val.startsWith('https://') || val === 'your_sentry_dsn',
-    'Sentry DSN must be a valid URL if provided'
+    (val) => !val || val.startsWith("http://") || val.startsWith("https://") || val === "your_sentry_dsn",
+    "Sentry DSN must be a valid URL if provided"
   ),
 
   // External - Optional
   GOOGLE_MAPS_API_KEY: z.string().optional(),
 
   // Node Environment
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-})
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+});
 
 export type Env = z.infer<typeof envSchema>
 
@@ -116,30 +116,30 @@ function validateEnv(): Env {
 
       // Node Environment
       NODE_ENV: process.env.NODE_ENV,
-    })
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const missingVars = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n')
+      const missingVars = error.errors.map(err => `${err.path.join(".")}: ${err.message}`).join("\n");
       
       // During build, just log a warning instead of throwing
-      if (process.env.NEXT_PHASE === 'phase-production-build') {
-        console.warn('⚠️  Environment validation warnings during build:\n', missingVars)
+      if (process.env.NEXT_PHASE === "phase-production-build") {
+        console.warn("⚠️  Environment validation warnings during build:\n", missingVars);
         // Return a partial env object with defaults for build time
         return {
-          NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
-          NODE_ENV: (process.env.NODE_ENV as any) || 'production',
-        } as Env
+          NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key",
+          NODE_ENV: (process.env.NODE_ENV as any) || "production",
+        } as Env;
       }
       
-      throw new Error(`Environment validation failed:\n${missingVars}`)
+      throw new Error(`Environment validation failed:\n${missingVars}`);
     }
-    throw error
+    throw error;
   }
 }
 
 // Validate environment variables on module load
-export const env = validateEnv()
+export const env = validateEnv();
 
 /**
  * Helper to check if a feature is enabled based on environment variables
@@ -152,4 +152,4 @@ export const isFeatureEnabled = {
   storage: () => Boolean(env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY),
   analytics: () => Boolean(env.GOOGLE_ANALYTICS_ID),
   monitoring: () => Boolean(env.SENTRY_DSN),
-} as const
+} as const;

@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { LinkIcon, CheckCircle, AlertCircle, ExternalLink } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { LinkIcon, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
 
 interface LinkStatus {
   url: string
@@ -13,73 +13,73 @@ interface LinkStatus {
 }
 
 export default function LinkChecker() {
-  const [links, setLinks] = useState<LinkStatus[]>([])
-  const [isVisible, setIsVisible] = useState(false)
-  const [isChecking, setIsChecking] = useState(false)
+  const [links, setLinks] = useState<LinkStatus[]>([]);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
 
   const checkLinks = async () => {
-    if (typeof window === "undefined") return
+    if (typeof window === "undefined") return;
 
-    setIsChecking(true)
-    const allLinks = Array.from(document.querySelectorAll("a[href]")) as HTMLAnchorElement[]
+    setIsChecking(true);
+    const allLinks = Array.from(document.querySelectorAll("a[href]")) as HTMLAnchorElement[];
 
     const linkStatuses: LinkStatus[] = allLinks.map((link) => ({
       url: link.href,
       status: link.href.startsWith(window.location.origin) ? "checking" : "external",
-    }))
+    }));
 
-    setLinks(linkStatuses)
+    setLinks(linkStatuses);
 
     // Check internal links
     for (let i = 0; i < linkStatuses.length; i++) {
-      const link = linkStatuses[i]
+      const link = linkStatuses[i];
       if (link.status === "checking") {
         try {
-          const response = await fetch(link.url, { method: "HEAD" })
+          const response = await fetch(link.url, { method: "HEAD" });
           linkStatuses[i] = {
             ...link,
             status: response.ok ? "valid" : "invalid",
             statusCode: response.status,
-          }
+          };
         } catch (error) {
           linkStatuses[i] = {
             ...link,
             status: "invalid",
             statusCode: 0,
-          }
+          };
         }
-        setLinks([...linkStatuses])
+        setLinks([...linkStatuses]);
       }
     }
 
-    setIsChecking(false)
-  }
+    setIsChecking(false);
+  };
 
   const getStatusIcon = (status: LinkStatus["status"]) => {
     switch (status) {
       case "valid":
-        return <CheckCircle className="h-3 w-3 text-green-600" />
+        return <CheckCircle className="h-3 w-3 text-green-600" />;
       case "invalid":
-        return <AlertCircle className="h-3 w-3 text-red-600" />
+        return <AlertCircle className="h-3 w-3 text-red-600" />;
       case "external":
-        return <ExternalLink className="h-3 w-3 text-blue-600" />
+        return <ExternalLink className="h-3 w-3 text-blue-600" />;
       default:
-        return <div className="h-3 w-3 rounded-full bg-gray-300 animate-pulse" />
+        return <div className="h-3 w-3 rounded-full bg-gray-300 animate-pulse" />;
     }
-  }
+  };
 
   const getStatusColor = (status: LinkStatus["status"]) => {
     switch (status) {
       case "valid":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "invalid":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       case "external":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   if (process.env.NODE_ENV !== "development" || !isVisible) {
     return (
@@ -87,7 +87,7 @@ export default function LinkChecker() {
         <LinkIcon className="h-4 w-4 mr-2" />
         Check Links
       </Button>
-    )
+    );
   }
 
   return (
@@ -138,5 +138,5 @@ export default function LinkChecker() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

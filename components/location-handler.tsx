@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MapPin, Navigation, AlertCircle, CheckCircle, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MapPin, Navigation, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface LocationHandlerProps {
   onLocationSet: (location: { city: string; coordinates?: { lat: number; lng: number } }) => void
@@ -29,43 +29,43 @@ const SERVICEABLE_CITIES = [
   { name: "Pune", slug: "pune" },
   { name: "Kolkata", slug: "kolkata" },
   { name: "Ahmedabad", slug: "ahmedabad" },
-]
+];
 
 export default function LocationHandler({ onLocationSet, trigger, redirectAfterSelection }: LocationHandlerProps) {
-  const router = useRouter()
-  const [isOpen, setIsOpen] = useState(false)
-  const [step, setStep] = useState<'permission' | 'selecting' | 'manual' | 'checking' | 'result'>('permission')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [userLocation, setUserLocation] = useState<GeolocationCoordinates | null>(null)
-  const [detectedCity, setDetectedCity] = useState<string>("")
-  const [selectedCity, setSelectedCity] = useState<string>("")
-  const [isServiceable, setIsServiceable] = useState<boolean | null>(null)
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const [step, setStep] = useState<"permission" | "selecting" | "manual" | "checking" | "result">("permission");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [userLocation, setUserLocation] = useState<GeolocationCoordinates | null>(null);
+  const [detectedCity, setDetectedCity] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [isServiceable, setIsServiceable] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Check if location is already set in localStorage
-    const savedLocation = localStorage.getItem("scanezy_location")
+    const savedLocation = localStorage.getItem("scanezy_location");
     if (savedLocation) {
       try {
-        const location = JSON.parse(savedLocation)
-        onLocationSet(location)
+        const location = JSON.parse(savedLocation);
+        onLocationSet(location);
       } catch (error) {
-        console.error("Error parsing saved location:", error)
+        console.error("Error parsing saved location:", error);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   const requestLocationPermission = async () => {
-    setLoading(true)
-    setError("")
-    setStep('checking')
+    setLoading(true);
+    setError("");
+    setStep("checking");
 
     if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser")
-      setStep('manual')
-      setLoading(false)
-      return
+      setError("Geolocation is not supported by your browser");
+      setStep("manual");
+      setLoading(false);
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -73,133 +73,133 @@ export default function LocationHandler({ onLocationSet, trigger, redirectAfterS
         const coordinates = {
           lat: position.coords.latitude,
           lng: position.coords.longitude
-        }
-        setUserLocation(coordinates)
+        };
+        setUserLocation(coordinates);
         
         // Try to detect city from coordinates
         try {
-          const city = await detectCityFromCoordinates(coordinates)
-          setDetectedCity(city)
+          const city = await detectCityFromCoordinates(coordinates);
+          setDetectedCity(city);
           
           // Check if city is serviceable
           const serviceable = SERVICEABLE_CITIES.some(c => 
             c.name.toLowerCase() === city.toLowerCase() || 
             c.slug.toLowerCase() === city.toLowerCase()
-          )
+          );
           
-          setIsServiceable(serviceable)
-          setStep('result')
+          setIsServiceable(serviceable);
+          setStep("result");
           
           if (serviceable) {
-            const locationData = { city, coordinates }
-            localStorage.setItem("scanezy_location", JSON.stringify(locationData))
-            onLocationSet(locationData)
+            const locationData = { city, coordinates };
+            localStorage.setItem("scanezy_location", JSON.stringify(locationData));
+            onLocationSet(locationData);
           }
           
         } catch (error) {
-          console.error("Error detecting city:", error)
-          setError("Unable to detect your city. Please select manually.")
-          setStep('manual')
+          console.error("Error detecting city:", error);
+          setError("Unable to detect your city. Please select manually.");
+          setStep("manual");
         } finally {
-          setLoading(false)
+          setLoading(false);
         }
       },
       (error) => {
-        console.error("Geolocation error:", error)
-        let errorMessage = "Location access denied. Please select your city manually."
+        console.error("Geolocation error:", error);
+        let errorMessage = "Location access denied. Please select your city manually.";
         
         if (error.code === error.PERMISSION_DENIED) {
-          errorMessage = "Location permission denied. Please select your city manually."
+          errorMessage = "Location permission denied. Please select your city manually.";
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          errorMessage = "Location information unavailable. Please select your city manually."
+          errorMessage = "Location information unavailable. Please select your city manually.";
         } else if (error.code === error.TIMEOUT) {
-          errorMessage = "Location request timed out. Please select your city manually."
+          errorMessage = "Location request timed out. Please select your city manually.";
         }
         
-        setError(errorMessage)
-        setStep('manual')
-        setLoading(false)
+        setError(errorMessage);
+        setStep("manual");
+        setLoading(false);
       }
-    )
-  }
+    );
+  };
 
   const detectCityFromCoordinates = async (coordinates: GeolocationCoordinates): Promise<string> => {
     // For demo purposes, return a mock city based on coordinates
     // In production, you would use a reverse geocoding service like Google Maps API
     
     // Mock detection logic (replace with actual reverse geocoding)
-    const mumbaiCenter = { lat: 19.0760, lng: 72.8777 }
-    const delhiCenter = { lat: 28.6139, lng: 77.2090 }
-    const bangaloreCenter = { lat: 12.9716, lng: 77.5946 }
+    const mumbaiCenter = { lat: 19.0760, lng: 72.8777 };
+    const delhiCenter = { lat: 28.6139, lng: 77.2090 };
+    const bangaloreCenter = { lat: 12.9716, lng: 77.5946 };
     
     const distance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-      return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2))
-    }
+      return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2));
+    };
     
-    const mumbaiDist = distance(coordinates.lat, coordinates.lng, mumbaiCenter.lat, mumbaiCenter.lng)
-    const delhiDist = distance(coordinates.lat, coordinates.lng, delhiCenter.lat, delhiCenter.lng)
-    const bangaloreDist = distance(coordinates.lat, coordinates.lng, bangaloreCenter.lat, bangaloreCenter.lng)
+    const mumbaiDist = distance(coordinates.lat, coordinates.lng, mumbaiCenter.lat, mumbaiCenter.lng);
+    const delhiDist = distance(coordinates.lat, coordinates.lng, delhiCenter.lat, delhiCenter.lng);
+    const bangaloreDist = distance(coordinates.lat, coordinates.lng, bangaloreCenter.lat, bangaloreCenter.lng);
     
     if (mumbaiDist <= delhiDist && mumbaiDist <= bangaloreDist) {
-      return "Mumbai"
+      return "Mumbai";
     } else if (delhiDist <= bangaloreDist) {
-      return "Delhi"
+      return "Delhi";
     } else {
-      return "Bangalore"
+      return "Bangalore";
     }
-  }
+  };
 
   const handleManualCitySelection = () => {
     if (!selectedCity) {
-      setError("Please select a city")
-      return
+      setError("Please select a city");
+      return;
     }
 
-    const cityData = SERVICEABLE_CITIES.find(c => c.slug === selectedCity)
+    const cityData = SERVICEABLE_CITIES.find(c => c.slug === selectedCity);
     if (!cityData) {
-      setError("Selected city is not serviceable")
-      return
+      setError("Selected city is not serviceable");
+      return;
     }
 
-    const locationData = { city: cityData.name }
-    localStorage.setItem("scanezy_location", JSON.stringify(locationData))
-    onLocationSet(locationData)
-    setIsOpen(false)
-    setError("")
+    const locationData = { city: cityData.name };
+    localStorage.setItem("scanezy_location", JSON.stringify(locationData));
+    onLocationSet(locationData);
+    setIsOpen(false);
+    setError("");
     
     // Redirect if path is provided
     if (redirectAfterSelection) {
-      router.push(redirectAfterSelection)
+      router.push(redirectAfterSelection);
     }
-  }
+  };
 
   const handleContinueWithService = () => {
     if (detectedCity) {
-      const locationData = { city: detectedCity, coordinates: userLocation || undefined }
-      localStorage.setItem("scanezy_location", JSON.stringify(locationData))
-      onLocationSet(locationData)
-      setIsOpen(false)
+      const locationData = { city: detectedCity, coordinates: userLocation || undefined };
+      localStorage.setItem("scanezy_location", JSON.stringify(locationData));
+      onLocationSet(locationData);
+      setIsOpen(false);
       
       // Redirect if path is provided
       if (redirectAfterSelection) {
-        router.push(redirectAfterSelection)
+        router.push(redirectAfterSelection);
       }
     }
-  }
+  };
 
   const resetFlow = () => {
-    setStep('permission')
-    setError("")
-    setUserLocation(null)
-    setDetectedCity("")
-    setSelectedCity("")
-    setIsServiceable(null)
-    setLoading(false)
-  }
+    setStep("permission");
+    setError("");
+    setUserLocation(null);
+    setDetectedCity("");
+    setSelectedCity("");
+    setIsServiceable(null);
+    setLoading(false);
+  };
 
   const renderContent = () => {
     switch (step) {
-      case 'permission':
+      case "permission":
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -222,7 +222,7 @@ export default function LocationHandler({ onLocationSet, trigger, redirectAfterS
               
               <Button 
                 variant="outline" 
-                onClick={() => setStep('manual')} 
+                onClick={() => setStep("manual")} 
                 className="w-full"
               >
                 Select City Manually
@@ -233,18 +233,18 @@ export default function LocationHandler({ onLocationSet, trigger, redirectAfterS
               We only use your location to provide better service recommendations.
             </p>
           </div>
-        )
+        );
 
-      case 'checking':
+      case "checking":
         return (
           <div className="text-center space-y-4">
             <Loader2 className="h-16 w-16 text-blue-600 mx-auto animate-spin" />
             <h3 className="text-lg font-semibold">Detecting Your Location...</h3>
             <p className="text-gray-600">Please wait while we find nearby centers.</p>
           </div>
-        )
+        );
 
-      case 'result':
+      case "result":
         return (
           <div className="space-y-6">
             {isServiceable ? (
@@ -268,7 +268,7 @@ export default function LocationHandler({ onLocationSet, trigger, redirectAfterS
                 <p className="text-sm text-gray-600 mb-6">
                   Please select from our available cities:
                 </p>
-                <Button variant="outline" onClick={() => setStep('manual')} className="w-full">
+                <Button variant="outline" onClick={() => setStep("manual")} className="w-full">
                   Choose Available City
                 </Button>
               </div>
@@ -280,9 +280,9 @@ export default function LocationHandler({ onLocationSet, trigger, redirectAfterS
               </Button>
             </div>
           </div>
-        )
+        );
 
-      case 'manual':
+      case "manual":
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -324,17 +324,17 @@ export default function LocationHandler({ onLocationSet, trigger, redirectAfterS
             </div>
             
             <div className="text-center">
-              <Button variant="ghost" onClick={() => setStep('permission')} className="text-sm">
+              <Button variant="ghost" onClick={() => setStep("permission")} className="text-sm">
                 Try Location Access Again
               </Button>
             </div>
           </div>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   if (trigger) {
     return (
@@ -354,7 +354,7 @@ export default function LocationHandler({ onLocationSet, trigger, redirectAfterS
           </DialogContent>
         </Dialog>
       </>
-    )
+    );
   }
 
   return (
@@ -369,5 +369,5 @@ export default function LocationHandler({ onLocationSet, trigger, redirectAfterS
         {renderContent()}
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -16,7 +16,7 @@ const nextConfig = {
   // This ensures code quality and catches errors early
   eslint: {
     // Run ESLint during production builds to catch issues
-    ignoreDuringBuilds: true, // Temporarily disabled for testing
+    ignoreDuringBuilds: false,
   },
   typescript: {
     // Run TypeScript type checking during production builds

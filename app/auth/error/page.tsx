@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import { useSearchParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Home } from "lucide-react"
-import Link from "next/link"
+import { useSearchParams } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Home } from "lucide-react";
+import Link from "next/link";
 
 const errorMessages: Record<string, string> = {
   Configuration: "There is a problem with the server configuration.",
   AccessDenied: "You do not have permission to sign in.",
   Verification: "The verification token has expired or has already been used.",
   Default: "An error occurred during sign in.",
-}
+};
 
 export default function AuthErrorPage() {
-  const searchParams = useSearchParams()
-  const error = searchParams.get("error")
-  const customMessage = searchParams.get("message")
-  const message = customMessage || errorMessages[error || "Default"] || errorMessages.Default
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+  const customMessage = searchParams.get("message");
+  const message = customMessage || errorMessages[error || "Default"] || errorMessages.Default;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F5F7FA] p-4">
@@ -34,7 +34,7 @@ export default function AuthErrorPage() {
           </Alert>
 
           {/* Show debug info in development */}
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === "development" && (
             <Alert>
               <AlertDescription className="text-xs">
                 Debug: error={error}, message={customMessage}
@@ -66,5 +66,5 @@ export default function AuthErrorPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

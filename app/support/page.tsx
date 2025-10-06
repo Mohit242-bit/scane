@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Phone, Mail, MessageCircle, Search, Clock, CheckCircle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Phone, Mail, MessageCircle, Search, Clock, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const faqs = [
   {
@@ -39,35 +39,35 @@ const faqs = [
     answer:
       "We work with most major insurance providers. Please check with your insurance company for coverage details and bring your insurance card.",
   },
-]
+];
 
 export default function SupportPage() {
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState("");
   const [ticketForm, setTicketForm] = useState({
     name: "",
     phone: "",
     bookingId: "",
     category: "",
     message: "",
-  })
-  const { toast } = useToast()
+  });
+  const { toast } = useToast();
 
   const filteredFaqs = faqs.filter(
     (faq) =>
       faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       faq.answer.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  );
 
   const handleSubmitTicket = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Mock ticket submission
     toast({
       title: "Support ticket created",
       description:
         "We'll get back to you within 2 hours. Ticket ID: #" + Math.random().toString(36).substr(2, 8).toUpperCase(),
-    })
-    setTicketForm({ name: "", phone: "", bookingId: "", category: "", message: "" })
-  }
+    });
+    setTicketForm({ name: "", phone: "", bookingId: "", category: "", message: "" });
+  };
 
   return (
     <div className="container py-8">
@@ -235,5 +235,5 @@ export default function SupportPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

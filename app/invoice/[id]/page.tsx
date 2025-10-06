@@ -1,41 +1,41 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import { useParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import type { Booking, Center, Service, Slot } from "@/lib/types"
-import { getBookingById } from "@/lib/db"
-import { services, seededCentersFor } from "@/lib/data"
-import { Separator } from "@/components/ui/separator"
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import type { Booking, Center, Service, Slot } from "@/lib/types";
+import { getBookingById } from "@/lib/db";
+import { services, seededCentersFor } from "@/lib/data";
+import { Separator } from "@/components/ui/separator";
 
 export default function InvoicePage() {
-  const { id } = useParams<{ id: string }>()
-  const [booking, setBooking] = useState<Booking | null>(null)
-  const [center, setCenter] = useState<Center | null>(null)
-  const [service, setService] = useState<Service | null>(null)
-  const [slot, setSlot] = useState<Slot | null>(null)
-  const invoiceNo = useMemo(() => `INV-${id}`, [id])
+  const { id } = useParams<{ id: string }>();
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const [center, setCenter] = useState<Center | null>(null);
+  const [service, setService] = useState<Service | null>(null);
+  const [slot, setSlot] = useState<Slot | null>(null);
+  const invoiceNo = useMemo(() => `INV-${id}`, [id]);
 
   useEffect(() => {
-    const b = getBookingById(id)
-    if (!b) return
-    setBooking(b)
-    const svc = servicesSeed().find((s) => s.id === b.service_id) || null
-    setService(svc)
-    const centers = seededCentersFor(b.city_slug)
-    const c = centers.find((x) => x.id === b.center_id) || null
-    setCenter(c)
-    const allSlots = seededSlotsFor(b.city_slug, svc?.slug || "mri-brain")
-    const s = allSlots.find((x) => x.id === b.slot_id) || null
-    setSlot(s)
-  }, [id])
+    const b = getBookingById(id);
+    if (!b) return;
+    setBooking(b);
+    const svc = servicesSeed().find((s) => s.id === b.service_id) || null;
+    setService(svc);
+    const centers = seededCentersFor(b.city_slug);
+    const c = centers.find((x) => x.id === b.center_id) || null;
+    setCenter(c);
+    const allSlots = seededSlotsFor(b.city_slug, svc?.slug || "mri-brain");
+    const s = allSlots.find((x) => x.id === b.slot_id) || null;
+    setSlot(s);
+  }, [id]);
 
   function printInvoice() {
-    window.print()
+    window.print();
   }
 
   if (!booking || !center || !service || !slot) {
-    return <main className="min-h-[100svh] bg-[#F5F7FA] p-6">Loading...</main>
+    return <main className="min-h-[100svh] bg-[#F5F7FA] p-6">Loading...</main>;
   }
 
   return (
@@ -103,5 +103,5 @@ export default function InvoicePage() {
         </div>
       </div>
     </main>
-  )
+  );
 }

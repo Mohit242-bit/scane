@@ -1,64 +1,64 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
-import { Building2, AlertCircle, Mail } from "lucide-react"
-import supabase from "@/lib/supabaseClient"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { Building2, AlertCircle, Mail } from "lucide-react";
+import supabase from "@/lib/supabaseClient";
 
 export default function PartnerDevLoginPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [error, setError] = useState("")
-  const router = useRouter()
-  const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleDevLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
     if (!email) {
-      setError("Please enter an email")
-      return
+      setError("Please enter an email");
+      return;
     }
 
     try {
-      setIsLoading(true)
-      setError("")
+      setIsLoading(true);
+      setError("");
 
       // Create a mock partner session for development
       const mockUserData = {
         id: `dev-partner-${Date.now()}`,
         email: email,
         user_metadata: {
-          full_name: email.split('@')[0],
-          role: 'partner',
-          provider: 'development'
+          full_name: email.split("@")[0],
+          role: "partner",
+          provider: "development"
         }
-      }
+      };
 
       // Set user data in localStorage for development
-      localStorage.setItem('dev-partner-user', JSON.stringify(mockUserData))
+      localStorage.setItem("dev-partner-user", JSON.stringify(mockUserData));
       
       toast({
         title: "Development login successful",
         description: "You're now logged in as a partner (development mode)"
-      })
+      });
 
       // Redirect to partner onboarding
-      router.push("/partner/onboarding")
+      router.push("/partner/onboarding");
       
     } catch (error) {
-      console.error("Dev login error:", error)
-      setError("Development login failed")
+      console.error("Dev login error:", error);
+      setError("Development login failed");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0AA1A7]/5 to-[#B7F171]/5 flex items-center justify-center p-4">
@@ -121,5 +121,5 @@ export default function PartnerDevLoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

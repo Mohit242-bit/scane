@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   CheckCircle,
   Calendar,
@@ -18,56 +18,56 @@ import {
   Download,
   Share2,
   ArrowLeft,
-} from "lucide-react"
-import Link from "next/link"
-import { useToast } from "@/hooks/use-toast"
-import type { Booking } from "@/lib/types"
+} from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import type { Booking } from "@/lib/types";
 
 export default function ConfirmPage() {
-  const params = useParams()
-  const { toast } = useToast()
-  const [booking, setBooking] = useState<Booking | null>(null)
-  const [loading, setLoading] = useState(true)
+  const params = useParams();
+  const { toast } = useToast();
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchBooking()
-  }, [params.id])
+    fetchBooking();
+  }, [params.id]);
 
   const fetchBooking = async () => {
     try {
-      const response = await fetch(`/api/bookings?id=${params.id}`)
+      const response = await fetch(`/api/bookings?id=${params.id}`);
       if (response.ok) {
-        const data = await response.json()
-        setBooking(data)
+        const data = await response.json();
+        setBooking(data);
       }
     } catch (error) {
-      console.error("Failed to fetch booking:", error)
+      console.error("Failed to fetch booking:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleShare = async () => {
     const shareData = {
       title: "ScanEzy Booking Confirmation",
       text: `Booking confirmed for ${booking?.patientName} - ${booking?.serviceId} on ${booking?.date} at ${booking?.time}`,
       url: window.location.href,
-    }
+    };
 
     try {
       if (navigator.share) {
-        await navigator.share(shareData)
+        await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(window.location.href)
+        await navigator.clipboard.writeText(window.location.href);
         toast({
           title: "Link copied!",
           description: "Booking confirmation link copied to clipboard",
-        })
+        });
       }
     } catch (error) {
-      console.error("Error sharing:", error)
+      console.error("Error sharing:", error);
     }
-  }
+  };
 
   const handleDownload = () => {
     // Create a simple text receipt
@@ -84,18 +84,18 @@ Status: ${booking?.status}
 Amount: ₹${booking?.totalAmount}
 
 Generated on: ${new Date().toLocaleString()}
-    `.trim()
+    `.trim();
 
-    const blob = new Blob([receipt], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `scanezy-booking-${booking?.id}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+    const blob = new Blob([receipt], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `scanezy-booking-${booking?.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   if (loading) {
     return (
@@ -105,7 +105,7 @@ Generated on: ${new Date().toLocaleString()}
           <p className="mt-4 text-gray-600">Loading booking details...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!booking) {
@@ -121,7 +121,7 @@ Generated on: ${new Date().toLocaleString()}
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -300,5 +300,5 @@ Generated on: ${new Date().toLocaleString()}
         </div>
       </div>
     </div>
-  )
+  );
 }

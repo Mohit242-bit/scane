@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, Send } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import LoadingSpinner from "./loading-spinner"
-import { z } from "zod"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import LoadingSpinner from "./loading-spinner";
+import { z } from "zod";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -21,7 +21,7 @@ const contactSchema = z.object({
   phone: z.string().regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit mobile number"),
   subject: z.enum(["general", "booking", "technical", "partnership", "feedback"]),
   message: z.string().min(10, "Message must be at least 10 characters"),
-})
+});
 
 type ContactFormData = z.infer<typeof contactSchema>
 
@@ -31,44 +31,44 @@ interface ContactFormProps {
 }
 
 export default function ContactForm({ variant = "default", className = "" }: ContactFormProps) {
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",
     phone: "",
     subject: "general",
     message: "",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrors({})
-    setLoading(true)
+    e.preventDefault();
+    setErrors({});
+    setLoading(true);
 
     try {
       // Validate form data
-      const validatedData = contactSchema.parse(formData)
+      const validatedData = contactSchema.parse(formData);
 
       // Submit to API
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validatedData),
-      })
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || "Failed to send message")
+        const error = await response.json();
+        throw new Error(error.message || "Failed to send message");
       }
 
-      setSubmitted(true)
+      setSubmitted(true);
       toast({
         title: "Message sent successfully!",
         description: "We'll get back to you within 24 hours.",
-      })
+      });
 
       // Reset form
       setFormData({
@@ -77,35 +77,35 @@ export default function ContactForm({ variant = "default", className = "" }: Con
         phone: "",
         subject: "general",
         message: "",
-      })
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {}
+        const fieldErrors: Record<string, string> = {};
         error.errors.forEach((err) => {
           if (err.path[0]) {
-            fieldErrors[err.path[0] as string] = err.message
+            fieldErrors[err.path[0] as string] = err.message;
           }
-        })
-        setErrors(fieldErrors)
+        });
+        setErrors(fieldErrors);
       } else {
         toast({
           title: "Failed to send message",
           description: error instanceof Error ? error.message : "Please try again later.",
           variant: "destructive",
-        })
+        });
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleInputChange = (field: keyof ContactFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   if (submitted && variant === "default") {
     return (
@@ -125,7 +125,7 @@ export default function ContactForm({ variant = "default", className = "" }: Con
           </Button>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -248,5 +248,5 @@ export default function ContactForm({ variant = "default", className = "" }: Con
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

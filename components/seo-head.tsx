@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import Head from "next/head"
+import Head from "next/head";
 
 type SeoHeadProps = {
   title?: string
@@ -28,5 +28,5 @@ export default function SeoHead({
       {title ? <meta name="twitter:title" content={title} /> : null}
       {description ? <meta name="twitter:description" content={description} /> : null}
     </Head>
-  )
+  );
 }

@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   Filter, 
@@ -21,9 +21,9 @@ import {
   RefreshCw,
   Download,
   Database
-} from "lucide-react"
-import AdminGuard from "@/components/admin-guard"
-import AdminNavigation from "@/components/admin-navigation"
+} from "lucide-react";
+import AdminGuard from "@/components/admin-guard";
+import AdminNavigation from "@/components/admin-navigation";
 
 const AVAILABLE_TABLES = [
   { value: "users", label: "Users", description: "System users and accounts" },
@@ -35,45 +35,45 @@ const AVAILABLE_TABLES = [
   { value: "reviews", label: "Reviews", description: "User reviews and ratings" },
   { value: "documents", label: "Documents", description: "Uploaded documents" },
   { value: "notifications", label: "Notifications", description: "System notifications" }
-]
+];
 
 export default function AdminTablesPage() {
-  const { toast } = useToast()
-  const [selectedTable, setSelectedTable] = useState("users")
-  const [data, setData] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedRecord, setSelectedRecord] = useState<any>(null)
-  const [editRecord, setEditRecord] = useState<any>(null)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const { toast } = useToast();
+  const [selectedTable, setSelectedTable] = useState("users");
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [editRecord, setEditRecord] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (selectedTable) {
-      fetchTableData(selectedTable)
+      fetchTableData(selectedTable);
     }
-  }, [selectedTable])
+  }, [selectedTable]);
 
   const fetchTableData = async (table: string) => {
     try {
-      setLoading(true)
-      const response = await fetch(`/api/admin/tables?table=${table}&limit=100`)
-      const tableData = await response.json()
+      setLoading(true);
+      const response = await fetch(`/api/admin/tables?table=${table}&limit=100`);
+      const tableData = await response.json();
       
       if (!response.ok) {
-        throw new Error(tableData.error || "Failed to fetch data")
+        throw new Error(tableData.error || "Failed to fetch data");
       }
       
-      setData(tableData)
+      setData(tableData);
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to fetch table data",
         variant: "destructive"
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleUpdateRecord = async (record: any) => {
     try {
@@ -81,126 +81,126 @@ export default function AdminTablesPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ table: selectedTable, ...record })
-      })
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to update record")
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update record");
       }
 
       toast({
         title: "Success",
         description: "Record updated successfully"
-      })
+      });
 
-      setIsEditDialogOpen(false)
-      setEditRecord(null)
-      fetchTableData(selectedTable) // Refresh data
+      setIsEditDialogOpen(false);
+      setEditRecord(null);
+      fetchTableData(selectedTable); // Refresh data
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to update record",
         variant: "destructive"
-      })
+      });
     }
-  }
+  };
 
   const handleDeleteRecord = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this record?")) return
+    if (!confirm("Are you sure you want to delete this record?")) return;
 
     try {
       const response = await fetch(`/api/admin/tables?table=${selectedTable}&id=${id}`, {
         method: "DELETE"
-      })
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to delete record")
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete record");
       }
 
       toast({
         title: "Success",
         description: "Record deleted successfully"
-      })
+      });
 
-      fetchTableData(selectedTable) // Refresh data
+      fetchTableData(selectedTable); // Refresh data
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to delete record",
         variant: "destructive"
-      })
+      });
     }
-  }
+  };
 
   const exportData = () => {
-    const csv = convertToCSV(data)
-    const blob = new Blob([csv], { type: "text/csv" })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.setAttribute("hidden", "")
-    a.setAttribute("href", url)
-    a.setAttribute("download", `${selectedTable}_${new Date().toISOString().split("T")[0]}.csv`)
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }
+    const csv = convertToCSV(data);
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.setAttribute("hidden", "");
+    a.setAttribute("href", url);
+    a.setAttribute("download", `${selectedTable}_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   const convertToCSV = (data: any[]) => {
-    if (data.length === 0) return ""
+    if (data.length === 0) return "";
     
-    const headers = Object.keys(data[0])
+    const headers = Object.keys(data[0]);
     const csvContent = [
       headers.join(","),
       ...data.map(row => 
         headers.map(header => {
-          const value = row[header]
+          const value = row[header];
           if (typeof value === "object" && value !== null) {
-            return `"${JSON.stringify(value).replace(/"/g, '""')}"`
+            return `"${JSON.stringify(value).replace(/"/g, "\"\"")}"`;
           }
-          return `"${String(value || "").replace(/"/g, '""')}"`
+          return `"${String(value || "").replace(/"/g, "\"\"")}"`;
         }).join(",")
       )
-    ].join("\n")
+    ].join("\n");
     
-    return csvContent
-  }
+    return csvContent;
+  };
 
   const renderCellValue = (value: any, key: string) => {
-    if (value === null || value === undefined) return "—"
+    if (value === null || value === undefined) return "—";
     
     if (typeof value === "object") {
-      return <Badge variant="outline">{JSON.stringify(value)}</Badge>
+      return <Badge variant="outline">{JSON.stringify(value)}</Badge>;
     }
     
     if (typeof value === "boolean") {
-      return <Badge variant={value ? "default" : "outline"}>{value.toString()}</Badge>
+      return <Badge variant={value ? "default" : "outline"}>{value.toString()}</Badge>;
     }
     
     if (key.includes("email")) {
-      return <code className="text-sm">{value}</code>
+      return <code className="text-sm">{value}</code>;
     }
     
     if (key.includes("date") || key.includes("time") || key.includes("_at")) {
-      return new Date(value).toLocaleString()
+      return new Date(value).toLocaleString();
     }
     
     if (key === "id") {
-      return <code className="text-xs text-gray-500">{value}</code>
+      return <code className="text-xs text-gray-500">{value}</code>;
     }
     
-    return String(value).length > 50 ? String(value).substring(0, 50) + "..." : String(value)
-  }
+    return String(value).length > 50 ? String(value).substring(0, 50) + "..." : String(value);
+  };
 
   const filteredData = data.filter(record => {
-    if (!searchTerm) return true
+    if (!searchTerm) return true;
     
     return Object.values(record).some(value => 
       String(value || "").toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })
+    );
+  });
 
-  const tableInfo = AVAILABLE_TABLES.find(t => t.value === selectedTable)
+  const tableInfo = AVAILABLE_TABLES.find(t => t.value === selectedTable);
 
   return (
     <AdminGuard>
@@ -340,8 +340,8 @@ export default function AdminTablesPage() {
                               variant="outline" 
                               size="sm"
                               onClick={() => {
-                                setEditRecord(record)
-                                setIsEditDialogOpen(true)
+                                setEditRecord(record);
+                                setIsEditDialogOpen(true);
                               }}
                             >
                               <Edit className="h-4 w-4" />
@@ -426,10 +426,10 @@ export default function AdminTablesPage() {
                         value={typeof value === "object" ? JSON.stringify(value, null, 2) : String(value || "")}
                         onChange={(e) => {
                           try {
-                            const parsedValue = JSON.parse(e.target.value)
-                            setEditRecord({...editRecord, [key]: parsedValue})
+                            const parsedValue = JSON.parse(e.target.value);
+                            setEditRecord({...editRecord, [key]: parsedValue});
                           } catch {
-                            setEditRecord({...editRecord, [key]: e.target.value})
+                            setEditRecord({...editRecord, [key]: e.target.value});
                           }
                         }}
                         className="mt-1"
@@ -453,5 +453,5 @@ export default function AdminTablesPage() {
         </Dialog>
       </div>
     </AdminGuard>
-  )
+  );
 }

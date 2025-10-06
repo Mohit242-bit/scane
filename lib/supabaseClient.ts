@@ -3,24 +3,24 @@
  * Provides singleton Supabase client instance with proper configuration
  */
 
-import { createClient } from '@supabase/supabase-js'
-import { env } from './env'
-import { logger } from './logger'
+import { createClient } from "@supabase/supabase-js";
+import { env } from "./env";
+import { logger } from "./logger";
 
 // Check if we're in build time
-const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
 
 // Validate that required Supabase environment variables are present
 // During build time, use placeholders to avoid errors
-const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL || (isBuildTime ? 'https://placeholder.supabase.co' : '')
-const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || (isBuildTime ? 'placeholder-anon-key' : '')
+const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL || (isBuildTime ? "https://placeholder.supabase.co" : "");
+const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || (isBuildTime ? "placeholder-anon-key" : "");
 
 if (!isBuildTime && (!supabaseUrl || !supabaseAnonKey)) {
   const error = new Error(
-    'Missing required Supabase configuration. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file'
-  )
-  logger.error('Supabase configuration error', error)
-  throw error
+    "Missing required Supabase configuration. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file"
+  );
+  logger.error("Supabase configuration error", error);
+  throw error;
 }
 
 /**
@@ -31,25 +31,25 @@ if (!isBuildTime && (!supabaseUrl || !supabaseAnonKey)) {
 const supabase = createClient(
   supabaseUrl,
   // Prefer service role key on server, fallback to anon key
-  typeof window === 'undefined' && env.SUPABASE_SERVICE_ROLE_KEY
+  typeof window === "undefined" && env.SUPABASE_SERVICE_ROLE_KEY
     ? env.SUPABASE_SERVICE_ROLE_KEY
     : supabaseAnonKey,
   {
     auth: {
       autoRefreshToken: true,
-      persistSession: typeof window !== 'undefined', // Only persist in browser
-      detectSessionInUrl: typeof window !== 'undefined',
+      persistSession: typeof window !== "undefined", // Only persist in browser
+      detectSessionInUrl: typeof window !== "undefined",
     },
   }
-)
+);
 
 if (!isBuildTime) {
-  logger.info('Supabase client initialized', {
+  logger.info("Supabase client initialized", {
     url: supabaseUrl,
     hasServiceRole: Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
-    isServer: typeof window === 'undefined',
-  })
+    isServer: typeof window === "undefined",
+  });
 }
 
-export default supabase
+export default supabase;
 

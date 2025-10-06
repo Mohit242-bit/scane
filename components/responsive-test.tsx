@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Monitor, Smartphone, Tablet, CheckCircle, AlertCircle } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Monitor, Smartphone, Tablet, CheckCircle, AlertCircle } from "lucide-react";
 
 interface BreakpointTest {
   name: string
@@ -21,34 +21,34 @@ const breakpoints: BreakpointTest[] = [
   { name: "Tablet", minWidth: 768, icon: Tablet, description: "Tablet devices" },
   { name: "Desktop", minWidth: 1024, icon: Monitor, description: "Desktop screens" },
   { name: "Desktop L", minWidth: 1440, icon: Monitor, description: "Large desktop screens" },
-]
+];
 
 export default function ResponsiveTest() {
-  const [currentWidth, setCurrentWidth] = useState(0)
-  const [currentBreakpoint, setCurrentBreakpoint] = useState("")
+  const [currentWidth, setCurrentWidth] = useState(0);
+  const [currentBreakpoint, setCurrentBreakpoint] = useState("");
 
   useEffect(() => {
     const updateWidth = () => {
-      setCurrentWidth(window.innerWidth)
+      setCurrentWidth(window.innerWidth);
 
       // Determine current breakpoint
       const activeBreakpoint = breakpoints
         .slice()
         .reverse()
-        .find((bp) => window.innerWidth >= bp.minWidth)
+        .find((bp) => window.innerWidth >= bp.minWidth);
 
-      setCurrentBreakpoint(activeBreakpoint?.name || "Unknown")
-    }
+      setCurrentBreakpoint(activeBreakpoint?.name || "Unknown");
+    };
 
-    updateWidth()
-    window.addEventListener("resize", updateWidth)
-    return () => window.removeEventListener("resize", updateWidth)
-  }, [])
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
-  const isBreakpointActive = (minWidth: number) => currentWidth >= minWidth
+  const isBreakpointActive = (minWidth: number) => currentWidth >= minWidth;
 
   if (typeof window === "undefined") {
-    return null // Don't render on server
+    return null; // Don't render on server
   }
 
   return (
@@ -101,5 +101,5 @@ export default function ResponsiveTest() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

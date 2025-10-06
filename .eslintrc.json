@@ -1,0 +1,21 @@
+{
+  "extends": ["next", "next/core-web-vitals"],
+  "rules": {
+    "semi": ["error", "always"],
+    "quotes": ["error", "double"],
+    "no-unused-vars": "warn",
+    "react/no-unescaped-entities": "warn",
+    "react-hooks/rules-of-hooks": "warn",
+    "react-hooks/exhaustive-deps": "warn"
+  },
+  "ignorePatterns": [
+    ".next/",
+    "node_modules/",
+    "lib/generated/**",
+    "out/",
+    "build/",
+    "dist/",
+    "**/*_backup*.ts",
+    "**/SIMPLE_TEST.ts"
+  ]
+}

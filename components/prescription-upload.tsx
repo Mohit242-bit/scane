@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Upload, 
   FileText, 
@@ -20,9 +20,9 @@ import {
   CheckCircle,
   AlertCircle,
   ShoppingCart
-} from "lucide-react"
-import { useDropzone } from 'react-dropzone'
-import { useToast } from "@/hooks/use-toast"
+} from "lucide-react";
+import { useDropzone } from "react-dropzone";
+import { useToast } from "@/hooks/use-toast";
 
 interface PrescriptionUploadProps {
   onTestsSelected: (tests: SelectedTest[]) => void
@@ -52,76 +52,80 @@ const POPULAR_TESTS = [
   { id: "6", name: "Kidney Function Test", description: "Creatinine, BUN, eGFR", price: 500, category: "Blood Test" },
   { id: "7", name: "Vitamin D Test", description: "Vitamin D3 levels", price: 900, category: "Vitamin Test" },
   { id: "8", name: "HbA1c Test", description: "3-month glucose average", price: 450, category: "Diabetes Test" },
-]
+];
 
-const TEST_CATEGORIES = ["Blood Test", "Hormone Test", "Vitamin Test", "Diabetes Test", "Cardiac Test", "Imaging"]
+const TEST_CATEGORIES = ["Blood Test", "Hormone Test", "Vitamin Test", "Diabetes Test", "Cardiac Test", "Imaging"];
 
 export default function PrescriptionUpload({ onTestsSelected, trigger }: PrescriptionUploadProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("browse")
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
-  const [selectedTests, setSelectedTests] = useState<SelectedTest[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [prescriptionNotes, setPrescriptionNotes] = useState("")
-  const [uploading, setUploading] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("browse");
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [selectedTests, setSelectedTests] = useState<SelectedTest[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [prescriptionNotes, setPrescriptionNotes] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [patientName, setPatientName] = useState("");
+  const [patientEmail, setPatientEmail] = useState("");
+  const [patientPhone, setPatientPhone] = useState("");
+  const [selectedCenterId, setSelectedCenterId] = useState<number | null>(null);
   
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: UploadedFile[] = acceptedFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file),
       id: Math.random().toString(36).substr(2, 9)
-    }))
+    }));
     
-    setUploadedFiles(prev => [...prev, ...newFiles])
+    setUploadedFiles(prev => [...prev, ...newFiles]);
     
     toast({
       title: "Files uploaded",
       description: `${acceptedFiles.length} file(s) uploaded successfully`,
-    })
-  }, [toast])
+    });
+  }, [toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png'],
-      'application/pdf': ['.pdf']
+      "image/*": [".jpeg", ".jpg", ".png"],
+      "application/pdf": [".pdf"]
     },
     maxFiles: 5,
     maxSize: 10 * 1024 * 1024 // 10MB
-  })
+  });
 
   const removeFile = (fileId: string) => {
     setUploadedFiles(prev => {
-      const newFiles = prev.filter(f => f.id !== fileId)
+      const newFiles = prev.filter(f => f.id !== fileId);
       // Revoke the object URL to free memory
-      const fileToRemove = prev.find(f => f.id === fileId)
+      const fileToRemove = prev.find(f => f.id === fileId);
       if (fileToRemove) {
-        URL.revokeObjectURL(fileToRemove.preview)
+        URL.revokeObjectURL(fileToRemove.preview);
       }
-      return newFiles
-    })
-  }
+      return newFiles;
+    });
+  };
 
   const toggleTestSelection = (test: SelectedTest) => {
     setSelectedTests(prev => {
-      const isSelected = prev.some(t => t.id === test.id)
+      const isSelected = prev.some(t => t.id === test.id);
       if (isSelected) {
-        return prev.filter(t => t.id !== test.id)
+        return prev.filter(t => t.id !== test.id);
       } else {
-        return [...prev, test]
+        return [...prev, test];
       }
-    })
-  }
+    });
+  };
 
   const filteredTests = POPULAR_TESTS.filter(test => {
     const matchesSearch = test.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         test.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === "all" || test.category === selectedCategory
-    return matchesSearch && matchesCategory
-  })
+                         test.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || test.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const handleContinue = async () => {
     if (activeTab === "prescription" && uploadedFiles.length === 0) {
@@ -129,8 +133,8 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
         title: "Upload Required",
         description: "Please upload at least one prescription image",
         variant: "destructive"
-      })
-      return
+      });
+      return;
     }
 
     if (activeTab === "browse" && selectedTests.length === 0) {
@@ -138,39 +142,93 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
         title: "Tests Required",
         description: "Please select at least one test",
         variant: "destructive"
-      })
-      return
+      });
+      return;
     }
 
     if (activeTab === "prescription") {
-      // In a real app, you would upload files to a server here
-      setUploading(true)
-      
-      // Simulate upload delay
-      setTimeout(() => {
-        setUploading(false)
+      // Validate patient information
+      if (!patientName || !patientEmail) {
         toast({
-          title: "Prescription uploaded",
-          description: "Our team will review and suggest appropriate tests",
-        })
+          title: "Information Required",
+          description: "Please provide patient name and email",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Upload prescription to Supabase
+      setUploading(true);
+      
+      try {
+        // Prepare file data
+        const prescriptionFiles = uploadedFiles.map(f => ({
+          name: f.file.name,
+          size: f.file.size,
+          type: f.file.type
+        }));
+
+        // Save prescription to database via API
+        const response = await fetch("/api/prescriptions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            center_id: selectedCenterId,
+            patient_name: patientName,
+            patient_email: patientEmail,
+            patient_phone: patientPhone,
+            prescription_files: prescriptionFiles,
+            notes: prescriptionNotes
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to upload prescription");
+        }
+
+        const data = await response.json();
+        
+        setUploading(false);
+        toast({
+          title: "Prescription uploaded successfully!",
+          description: "Our medical team will review and suggest appropriate tests shortly.",
+        });
         
         // For demo, auto-select some common tests
-        const suggestedTests = POPULAR_TESTS.slice(0, 3)
-        onTestsSelected(suggestedTests)
-        setIsOpen(false)
-      }, 2000)
+        const suggestedTests = POPULAR_TESTS.slice(0, 3);
+        onTestsSelected(suggestedTests);
+        setIsOpen(false);
+
+        // Reset form
+        setUploadedFiles([]);
+        setPatientName("");
+        setPatientEmail("");
+        setPatientPhone("");
+        setPrescriptionNotes("");
+        setSelectedCenterId(null);
+      } catch (error) {
+        console.error("Upload error:", error);
+        setUploading(false);
+        toast({
+          title: "Upload Failed",
+          description: "Failed to upload prescription. Please try again.",
+          variant: "destructive"
+        });
+      }
     } else {
-      onTestsSelected(selectedTests)
-      setIsOpen(false)
+      onTestsSelected(selectedTests);
+      setIsOpen(false);
     }
-  }
+  };
 
   const getTotalAmount = () => {
-    return selectedTests.reduce((total, test) => total + test.price, 0)
-  }
+    return selectedTests.reduce((total, test) => total + test.price, 0);
+  };
 
   const renderPrescriptionTab = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
       <div className="text-center">
         <FileText className="h-12 w-12 text-blue-600 mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">Upload Prescription</h3>
@@ -179,18 +237,56 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
         </p>
       </div>
 
+      {/* Patient Information */}
+      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+        <h4 className="font-medium">Patient Information</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2 col-span-2">
+            <Label htmlFor="patient_name">Patient Name *</Label>
+            <Input
+              id="patient_name"
+              value={patientName}
+              onChange={(e) => setPatientName(e.target.value)}
+              placeholder="Enter patient name"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="patient_email">Email *</Label>
+            <Input
+              id="patient_email"
+              type="email"
+              value={patientEmail}
+              onChange={(e) => setPatientEmail(e.target.value)}
+              placeholder="email@example.com"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="patient_phone">Phone</Label>
+            <Input
+              id="patient_phone"
+              type="tel"
+              value={patientPhone}
+              onChange={(e) => setPatientPhone(e.target.value)}
+              placeholder="+91 9876543210"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* File Upload Area */}
       <div
         {...getRootProps()}
         className={`
           border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-          ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
+          ${isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400"}
         `}
       >
         <input {...getInputProps()} />
         <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
         <p className="text-lg font-medium mb-2">
-          {isDragActive ? 'Drop files here' : 'Drag & drop prescription images'}
+          {isDragActive ? "Drop files here" : "Drag & drop prescription images"}
         </p>
         <p className="text-gray-500 mb-4">or click to browse files</p>
         <Button variant="outline" type="button">
@@ -248,10 +344,10 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
         </AlertDescription>
       </Alert>
     </div>
-  )
+  );
 
   const renderBrowseTab = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
       <div className="text-center">
         <Search className="h-12 w-12 text-blue-600 mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">Browse & Select Tests</h3>
@@ -297,14 +393,14 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
       {/* Test List */}
       <div className="space-y-3 max-h-96 overflow-y-auto">
         {filteredTests.map((test) => {
-          const isSelected = selectedTests.some(t => t.id === test.id)
+          const isSelected = selectedTests.some(t => t.id === test.id);
           return (
             <div
               key={test.id}
               onClick={() => toggleTestSelection(test)}
               className={`
                 p-4 border rounded-lg cursor-pointer transition-all
-                ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}
+                ${isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}
               `}
             >
               <div className="flex items-center justify-between">
@@ -323,7 +419,7 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -348,7 +444,7 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
         </div>
       )}
     </div>
-  )
+  );
 
   if (trigger) {
     return (
@@ -357,7 +453,7 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
           {trigger}
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle>Select Tests</DialogTitle>
               <DialogDescription>
@@ -365,17 +461,17 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
               </DialogDescription>
             </DialogHeader>
             
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 flex-1 overflow-hidden flex flex-col">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="browse">Browse Tests</TabsTrigger>
                 <TabsTrigger value="prescription">Upload Prescription</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="browse" className="mt-6">
+              <TabsContent value="browse" className="mt-6 flex-1 overflow-hidden">
                 {renderBrowseTab()}
               </TabsContent>
               
-              <TabsContent value="prescription" className="mt-6">
+              <TabsContent value="prescription" className="mt-6 flex-1 overflow-hidden">
                 {renderPrescriptionTab()}
               </TabsContent>
             </Tabs>
@@ -407,7 +503,7 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
           </DialogContent>
         </Dialog>
       </>
-    )
+    );
   }
 
   return (
@@ -457,5 +553,5 @@ export default function PrescriptionUpload({ onTestsSelected, trigger }: Prescri
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

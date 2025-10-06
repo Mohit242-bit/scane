@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import AdminGuard from "@/components/admin-guard"
-import AdminNavigation from "@/components/admin-navigation"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AdminGuard from "@/components/admin-guard";
+import AdminNavigation from "@/components/admin-navigation";
 import { 
   Building2, 
   Users, 
@@ -21,7 +21,7 @@ import {
   Clock,
   CheckCircle,
   Eye
-} from "lucide-react"
+} from "lucide-react";
 
 interface RegisteredUser {
   name: string
@@ -76,40 +76,40 @@ interface AdminCentersData {
 }
 
 export default function AdminCentersPage() {
-  const [data, setData] = useState<AdminCentersData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCenter, setSelectedCenter] = useState<Center | null>(null)
+  const [data, setData] = useState<AdminCentersData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCenter, setSelectedCenter] = useState<Center | null>(null);
 
   useEffect(() => {
     async function fetchCentersData() {
       try {
-        setLoading(true)
-        const response = await fetch('/api/admin/centers')
-        const result = await response.json()
+        setLoading(true);
+        const response = await fetch("/api/admin/centers");
+        const result = await response.json();
         
         if (!response.ok) {
-          throw new Error(result.error || 'Failed to fetch centers data')
+          throw new Error(result.error || "Failed to fetch centers data");
         }
         
-        setData(result)
+        setData(result);
       } catch (err) {
-        console.error('Error fetching centers data:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load centers data')
+        console.error("Error fetching centers data:", err);
+        setError(err instanceof Error ? err.message : "Failed to load centers data");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
     
-    fetchCentersData()
-  }, [])
+    fetchCentersData();
+  }, []);
 
   const filteredCenters = data?.centers.filter(center =>
     center.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     center.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
     center.area_hint.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || []
+  ) || [];
 
   if (loading) {
     return (
@@ -122,7 +122,7 @@ export default function AdminCentersPage() {
           </div>
         </div>
       </AdminGuard>
-    )
+    );
   }
 
   if (error) {
@@ -143,7 +143,7 @@ export default function AdminCentersPage() {
           </div>
         </div>
       </AdminGuard>
-    )
+    );
   }
 
   return (
@@ -220,7 +220,7 @@ export default function AdminCentersPage() {
             />
           </div>
           <div className="mt-4 text-sm text-gray-600">
-            {filteredCenters.length} center{filteredCenters.length !== 1 ? 's' : ''} found
+            {filteredCenters.length} center{filteredCenters.length !== 1 ? "s" : ""} found
           </div>
         </div>
 
@@ -250,7 +250,7 @@ export default function AdminCentersPage() {
                       <TableCell>
                         <div>
                           <div className="font-medium">{center.name}</div>
-                          <div className="text-sm text-gray-500">{center.partners?.name || 'No partner'}</div>
+                          <div className="text-sm text-gray-500">{center.partners?.name || "No partner"}</div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -354,9 +354,9 @@ export default function AdminCentersPage() {
                           <div className="flex items-center">
                             <Clock className="h-4 w-4 text-gray-400 mr-2" />
                             <span className="text-sm">
-                              {typeof selectedCenter.operating_hours === 'string' 
+                              {typeof selectedCenter.operating_hours === "string" 
                                 ? selectedCenter.operating_hours 
-                                : '9:00 AM - 6:00 PM'}
+                                : "9:00 AM - 6:00 PM"}
                             </span>
                           </div>
                         </CardContent>
@@ -421,7 +421,7 @@ export default function AdminCentersPage() {
                                 {selectedCenter.stats.registeredUsers.map((user, index) => (
                                   <TableRow key={index}>
                                     <TableCell className="font-medium">{user.name}</TableCell>
-                                    <TableCell>{user.email || '-'}</TableCell>
+                                    <TableCell>{user.email || "-"}</TableCell>
                                     <TableCell>{user.phone}</TableCell>
                                     <TableCell>
                                       <Badge variant="outline">{user.bookingsCount}</Badge>
@@ -492,5 +492,5 @@ export default function AdminCentersPage() {
         )}
       </div>
     </AdminGuard>
-  )
+  );
 }

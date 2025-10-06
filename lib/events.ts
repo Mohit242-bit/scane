@@ -29,31 +29,31 @@ export function trackEvent(event: EventType, data: EventData = {}) {
     timestamp: Date.now(),
     session_id: getSessionId(),
     ...data,
-  }
+  };
 
   // In production: send to GA4, Mixpanel, etc.
-  console.log("Event tracked:", eventPayload)
+  console.log("Event tracked:", eventPayload);
 
   // Store in memory for demo
   if (typeof window !== "undefined") {
-    const events = JSON.parse(localStorage.getItem("scanezy_events") || "[]")
-    events.push(eventPayload)
-    localStorage.setItem("scanezy_events", JSON.stringify(events.slice(-100))) // Keep last 100
+    const events = JSON.parse(localStorage.getItem("scanezy_events") || "[]");
+    events.push(eventPayload);
+    localStorage.setItem("scanezy_events", JSON.stringify(events.slice(-100))); // Keep last 100
   }
 }
 
 function getSessionId(): string {
-  if (typeof window === "undefined") return "server"
+  if (typeof window === "undefined") return "server";
 
-  let sessionId = sessionStorage.getItem("scanezy_session_id")
+  let sessionId = sessionStorage.getItem("scanezy_session_id");
   if (!sessionId) {
-    sessionId = Math.random().toString(36).substr(2, 16)
-    sessionStorage.setItem("scanezy_session_id", sessionId)
+    sessionId = Math.random().toString(36).substr(2, 16);
+    sessionStorage.setItem("scanezy_session_id", sessionId);
   }
-  return sessionId
+  return sessionId;
 }
 
 export function getStoredEvents(): any[] {
-  if (typeof window === "undefined") return []
-  return JSON.parse(localStorage.getItem("scanezy_events") || "[]")
+  if (typeof window === "undefined") return [];
+  return JSON.parse(localStorage.getItem("scanezy_events") || "[]");
 }

@@ -3,5 +3,5 @@
 export async function POST(req: Request) {
   // ...existing code...
   // TODO: Implement booking decision logic
-  return new Response('Not implemented', { status: 501 });
+  return new Response("Not implemented", { status: 501 });
 }

@@ -1,11 +1,11 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
-import { rateLimiter } from "@/lib/rate-limit"
-import { email } from "@/lib/email"
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { rateLimiter } from "@/lib/rate-limit";
+import { email } from "@/lib/email";
 
 
 // Force dynamic rendering for this API route
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
@@ -16,18 +16,18 @@ const contactSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
   message: z.string().min(10, "Message must be at least 10 characters"),
   inquiryType: z.string().optional(),
-})
+});
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.ip || req.headers.get("x-forwarded-for") || "unknown"
+    const ip = req.ip || req.headers.get("x-forwarded-for") || "unknown";
 
     // Rate limiting - 5 messages per hour per IP
     const { allowed, remaining, resetTime } = await rateLimiter.checkLimit(ip, {
       windowMs: 60 * 60 * 1000, // 1 hour
       maxRequests: 5,
       keyGenerator: (ip) => `contact_limit:${ip}`,
-    })
+    });
 
     if (!allowed) {
       return NextResponse.json(
@@ -39,17 +39,17 @@ export async function POST(req: NextRequest) {
             "X-RateLimit-Reset": resetTime.toString(),
           },
         },
-      )
+      );
     }
 
-    const body = await req.json()
-    const validation = contactSchema.safeParse(body)
+    const body = await req.json();
+    const validation = contactSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json({ error: "Invalid form data", details: validation.error.errors }, { status: 400 })
+      return NextResponse.json({ error: "Invalid form data", details: validation.error.errors }, { status: 400 });
     }
 
-    const { name, email: userEmail, phone, subject, message, inquiryType } = validation.data
+    const { name, email: userEmail, phone, subject, message, inquiryType } = validation.data;
 
     // Send notification email to support team
     const emailHtml = `
@@ -109,13 +109,13 @@ export async function POST(req: NextRequest) {
           </div>
         </body>
       </html>
-    `
+    `;
 
     await email.sendEmail({
       to: "support@scanezy.com",
       subject: `[ScanEzy] ${subject} from ${name}`,
       html: emailHtml,
-    })
+    });
 
     // Send confirmation email to user
     const confirmationHtml = `
@@ -153,20 +153,20 @@ export async function POST(req: NextRequest) {
           </div>
         </body>
       </html>
-    `
+    `;
 
     await email.sendEmail({
       to: userEmail,
       subject: "Message Received - ScanEzy Support",
       html: confirmationHtml,
-    })
+    });
 
     return NextResponse.json({
       success: true,
       message: "Message sent successfully. We'll respond within 24 hours.",
-    })
+    });
   } catch (error) {
-    console.error("Contact form error:", error)
-    return NextResponse.json({ error: "Failed to send message. Please try again." }, { status: 500 })
+    console.error("Contact form error:", error);
+    return NextResponse.json({ error: "Failed to send message. Please try again." }, { status: 500 });
   }
 }

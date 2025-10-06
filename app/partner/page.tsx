@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { getCurrentUser } from "@/lib/auth"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 
 export default function PartnerPage() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const user = await getCurrentUser()
+      const user = await getCurrentUser();
       
       if (!user) {
-        router.push("/partner/login")
-        return
+        router.push("/partner/login");
+        return;
       }
 
       // Redirect authenticated partners to dashboard
-      router.push("/partner/dashboard")
-    }
+      router.push("/partner/dashboard");
+    };
 
-    checkAuth()
-  }, [router])
+    checkAuth();
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -31,5 +31,5 @@ export default function PartnerPage() {
         <p className="text-[#5B6B7A]">Loading...</p>
       </div>
     </div>
-  )
+  );
 }

@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
-import { Mail, Phone, Building2, AlertCircle, Eye, EyeOff } from "lucide-react"
-import supabase from "@/lib/supabaseClient"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { Mail, Phone, Building2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import supabase from "@/lib/supabaseClient";
 
 export default function PartnerAuthPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [showSignUp, setShowSignUp] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Login form state
   const [loginData, setLoginData] = useState({
     email: "",
     password: ""
-  })
+  });
 
   // Sign up form state
   const [signUpData, setSignUpData] = useState({
@@ -36,70 +36,70 @@ export default function PartnerAuthPage() {
     businessPhone: "",
     address: "",
     city: ""
-  })
+  });
 
-  const [error, setError] = useState("")
-  const router = useRouter()
-  const { toast } = useToast()
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
     if (!loginData.email || !loginData.password) {
-      setError("Please fill in all fields")
-      return
+      setError("Please fill in all fields");
+      return;
     }
 
     try {
-      setIsLoading(true)
-      setError("")
+      setIsLoading(true);
+      setError("");
 
-      console.log("Attempting login with:", loginData.email)
+      console.log("Attempting login with:", loginData.email);
 
       // Sign in with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password
-      })
+      });
 
       if (authError) {
-        console.error("Auth error:", authError)
-        setError("Invalid email or password")
-        return
+        console.error("Auth error:", authError);
+        setError("Invalid email or password");
+        return;
       }
 
       if (!authData.user) {
-        setError("Login failed - no user data")
-        return
+        setError("Login failed - no user data");
+        return;
       }
 
-      console.log("Login successful, user:", authData.user.id)
+      console.log("Login successful, user:", authData.user.id);
 
       // Check if user exists in public.users table
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select("id, role")
         .eq("id", authData.user.id)
-        .single()
+        .single();
 
       if (userError && userError.code === "PGRST116") {
         // User doesn't exist in public.users, create them
-        console.log("Creating user in public.users table")
+        console.log("Creating user in public.users table");
         const { error: createUserError } = await supabase
           .from("users")
           .insert({
             id: authData.user.id,
             email: authData.user.email!,
-            full_name: authData.user.user_metadata?.full_name || loginData.email.split('@')[0],
+            full_name: authData.user.user_metadata?.full_name || loginData.email.split("@")[0],
             role: "partner",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          })
+          });
 
         if (createUserError) {
-          console.error("Error creating user:", createUserError)
-          setError("Failed to create user profile")
-          return
+          console.error("Error creating user:", createUserError);
+          setError("Failed to create user profile");
+          return;
         }
       } else if (!userError) {
         // Update role to partner if needed
@@ -107,7 +107,7 @@ export default function PartnerAuthPage() {
           await supabase
             .from("users")
             .update({ role: "partner", updated_at: new Date().toISOString() })
-            .eq("id", authData.user.id)
+            .eq("id", authData.user.id);
         }
       }
 
@@ -116,64 +116,64 @@ export default function PartnerAuthPage() {
         .from("partners")
         .select("*")
         .eq("user_id", authData.user.id)
-        .single()
+        .single();
 
       if (profileError && profileError.code === "PGRST116") {
         // No partner profile, redirect to onboarding
-        console.log("No partner profile found, redirecting to onboarding")
-        router.push("/partner/onboarding")
-        return
+        console.log("No partner profile found, redirecting to onboarding");
+        router.push("/partner/onboarding");
+        return;
       }
 
       if (partnerProfile && partnerProfile.status === "pending") {
         // Profile exists but not approved yet, still needs onboarding
-        console.log("Partner profile exists but status is pending")
-        router.push("/partner/onboarding")
-        return
+        console.log("Partner profile exists but status is pending");
+        router.push("/partner/onboarding");
+        return;
       }
 
       // Partner profile exists and onboarding completed
-      console.log("Partner profile complete, redirecting to dashboard")
-      router.push("/partner/dashboard")
+      console.log("Partner profile complete, redirecting to dashboard");
+      router.push("/partner/dashboard");
       
       toast({
         title: "Login successful",
         description: "Welcome to your partner dashboard!"
-      })
+      });
 
     } catch (error: any) {
-      console.error("Login error:", error)
-      setError("An error occurred during login")
+      console.error("Login error:", error);
+      setError("An error occurred during login");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
-    const { email, password, confirmPassword, fullName, phone, businessName } = signUpData
+    const { email, password, confirmPassword, fullName, phone, businessName } = signUpData;
     
     if (!email || !password || !confirmPassword || !fullName || !phone) {
-      setError("Please fill in all required fields")
-      return
+      setError("Please fill in all required fields");
+      return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      return
+      setError("Passwords do not match");
+      return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long")
-      return
+      setError("Password must be at least 6 characters long");
+      return;
     }
 
     try {
-      setIsLoading(true)
-      setError("")
+      setIsLoading(true);
+      setError("");
 
-      console.log("Creating new partner account:", email)
+      console.log("Creating new partner account:", email);
 
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -183,23 +183,23 @@ export default function PartnerAuthPage() {
           data: {
             full_name: fullName,
             phone: phone,
-            role: 'partner'
+            role: "partner"
           }
         }
-      })
+      });
 
       if (authError) {
-        console.error("Auth signup error:", authError)
-        setError("Failed to create account: " + authError.message)
-        return
+        console.error("Auth signup error:", authError);
+        setError("Failed to create account: " + authError.message);
+        return;
       }
 
       if (!authData.user) {
-        setError("Failed to create user account")
-        return
+        setError("Failed to create user account");
+        return;
       }
 
-      console.log("Auth user created:", authData.user.id)
+      console.log("Auth user created:", authData.user.id);
 
       // Create user in public.users table
       const { error: userError } = await supabase
@@ -212,10 +212,10 @@ export default function PartnerAuthPage() {
           role: "partner",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        })
+        });
 
       if (userError) {
-        console.error("Error creating user profile:", userError)
+        console.error("Error creating user profile:", userError);
         // Continue anyway, user can complete profile later
       }
 
@@ -232,10 +232,10 @@ export default function PartnerAuthPage() {
           status: "pending",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        })
+        });
 
       if (profileError) {
-        console.error("Error creating partner profile:", profileError)
+        console.error("Error creating partner profile:", profileError);
         // Continue anyway, profile can be created later
       }
 
@@ -244,13 +244,13 @@ export default function PartnerAuthPage() {
         description: authData.user.email_confirmed_at ? 
           "Your account is ready! Redirecting to onboarding..." :
           "Please check your email to verify your account, then complete your partner onboarding."
-      })
+      });
 
       // If email is confirmed (usually in development), redirect to onboarding
-      if (authData.user.email_confirmed_at || process.env.NODE_ENV === 'development') {
+      if (authData.user.email_confirmed_at || process.env.NODE_ENV === "development") {
         setTimeout(() => {
-          router.push("/partner/onboarding")
-        }, 1500)
+          router.push("/partner/onboarding");
+        }, 1500);
       } else {
         // Reset form for email verification flow
         setSignUpData({
@@ -264,17 +264,17 @@ export default function PartnerAuthPage() {
           businessPhone: "",
           address: "",
           city: ""
-        })
-        setShowSignUp(false)
+        });
+        setShowSignUp(false);
       }
 
     } catch (error: any) {
-      console.error("Sign up error:", error)
-      setError("An error occurred during sign up")
+      console.error("Sign up error:", error);
+      setError("An error occurred during sign up");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (showSignUp) {
     return (
@@ -412,8 +412,8 @@ export default function PartnerAuthPage() {
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    setShowSignUp(false)
-                    setError("")
+                    setShowSignUp(false);
+                    setError("");
                   }}
                   disabled={isLoading}
                 >
@@ -424,7 +424,7 @@ export default function PartnerAuthPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -502,8 +502,8 @@ export default function PartnerAuthPage() {
             <Button
               variant="outline"
               onClick={() => {
-                setShowSignUp(true)
-                setError("")
+                setShowSignUp(true);
+                setError("");
               }}
               className="w-full"
               disabled={isLoading}
@@ -513,7 +513,7 @@ export default function PartnerAuthPage() {
             </Button>
           </div>
 
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === "development" && (
             <div className="text-center pt-4 border-t">
               <p className="text-sm text-[#5B6B7A] mb-2">Development Mode</p>
               <Button
@@ -529,5 +529,5 @@ export default function PartnerAuthPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

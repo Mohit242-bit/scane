@@ -3,9 +3,9 @@
  * Common utility functions used throughout the application
  */
 
-import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-import { VALIDATION, PAYMENT } from './constants'
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { VALIDATION, PAYMENT } from "./constants";
 
 /**
  * Merges Tailwind CSS classes with proper precedence
@@ -13,7 +13,7 @@ import { VALIDATION, PAYMENT } from './constants'
  * @returns Merged class string
  */
 export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -22,12 +22,12 @@ export function cn(...inputs: ClassValue[]): string {
  * @returns Formatted currency string
  */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
     currency: PAYMENT.CURRENCY,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount)
+  }).format(amount);
 }
 
 /**
@@ -36,12 +36,12 @@ export function formatCurrency(amount: number): string {
  * @returns Formatted date string
  */
 export function formatDate(date: string | Date): string {
-  const d = new Date(date)
-  return d.toLocaleDateString('en-IN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  const d = new Date(date);
+  return d.toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 /**
@@ -50,12 +50,12 @@ export function formatDate(date: string | Date): string {
  * @returns Short formatted date string
  */
 export function formatDateShort(date: string | Date): string {
-  const d = new Date(date)
-  return d.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
+  const d = new Date(date);
+  return d.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 /**
@@ -64,11 +64,11 @@ export function formatDateShort(date: string | Date): string {
  * @returns Formatted time string
  */
 export function formatTime(time: string): string {
-  return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit',
+  return new Date(`2000-01-01T${time}`).toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
     hour12: true,
-  })
+  });
 }
 
 /**
@@ -77,15 +77,15 @@ export function formatTime(time: string): string {
  * @returns Formatted date and time string
  */
 export function formatDateTime(timestamp: number | string): string {
-  const date = typeof timestamp === 'number' ? new Date(timestamp) : new Date(timestamp)
-  return date.toLocaleString('en-IN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  const date = typeof timestamp === "number" ? new Date(timestamp) : new Date(timestamp);
+  return date.toLocaleString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
     hour12: true,
-  })
+  });
 }
 
 /**
@@ -93,7 +93,7 @@ export function formatDateTime(timestamp: number | string): string {
  * @returns Random alphanumeric ID
  */
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 11)
+  return Math.random().toString(36).substring(2, 11);
 }
 
 /**
@@ -101,11 +101,11 @@ export function generateId(): string {
  * @returns UUID string
  */
 export function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 /**
@@ -114,7 +114,7 @@ export function generateUUID(): string {
  * @returns true if valid
  */
 export function validateEmail(email: string): boolean {
-  return VALIDATION.EMAIL_REGEX.test(email)
+  return VALIDATION.EMAIL_REGEX.test(email);
 }
 
 /**
@@ -123,7 +123,7 @@ export function validateEmail(email: string): boolean {
  * @returns true if valid
  */
 export function validatePhone(phone: string): boolean {
-  return VALIDATION.PHONE_REGEX.test(phone)
+  return VALIDATION.PHONE_REGEX.test(phone);
 }
 
 /**
@@ -132,7 +132,7 @@ export function validatePhone(phone: string): boolean {
  * @returns true if valid
  */
 export function validatePincode(pincode: string): boolean {
-  return VALIDATION.PINCODE_REGEX.test(pincode)
+  return VALIDATION.PINCODE_REGEX.test(pincode);
 }
 
 /**
@@ -141,7 +141,7 @@ export function validatePincode(pincode: string): boolean {
  * @returns Capitalized string
  */
 export function capitalize(str: string): string {
-  return str.replace(/\b\w/g, (char) => char.toUpperCase())
+  return str.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 /**
@@ -151,9 +151,9 @@ export function capitalize(str: string): string {
  * @param suffix - Suffix to add (default: '...')
  * @returns Truncated string
  */
-export function truncate(str: string, length: number, suffix = '...'): string {
-  if (str.length <= length) return str
-  return str.substring(0, length - suffix.length) + suffix
+export function truncate(str: string, length: number, suffix = "..."): string {
+  if (str.length <= length) return str;
+  return str.substring(0, length - suffix.length) + suffix;
 }
 
 /**
@@ -165,9 +165,9 @@ export function slugify(str: string): string {
   return str
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 /**
@@ -176,7 +176,7 @@ export function slugify(str: string): string {
  * @returns Promise that resolves after delay
  */
 export function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -189,11 +189,11 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null
+  let timeout: NodeJS.Timeout | null = null;
   return (...args: Parameters<T>) => {
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(() => func(...args), wait)
-  }
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
 }
 
 /**
@@ -206,14 +206,14 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
-  let inThrottle: boolean
+  let inThrottle: boolean;
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
-      func(...args)
-      inThrottle = true
-      setTimeout(() => (inThrottle = false), limit)
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
     }
-  }
+  };
 }
 
 /**
@@ -222,12 +222,12 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
  * @returns Object with parsed parameters
  */
 export function parseQueryString(search: string): Record<string, string> {
-  const params = new URLSearchParams(search)
-  const result: Record<string, string> = {}
+  const params = new URLSearchParams(search);
+  const result: Record<string, string> = {};
   params.forEach((value, key) => {
-    result[key] = value
-  })
-  return result
+    result[key] = value;
+  });
+  return result;
 }
 
 /**
@@ -236,13 +236,13 @@ export function parseQueryString(search: string): Record<string, string> {
  * @returns Formatted size string
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes'
+  if (bytes === 0) return "0 Bytes";
   
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
 }
 
 /**
@@ -251,11 +251,11 @@ export function formatFileSize(bytes: number): string {
  * @returns true if empty
  */
 export function isEmpty(value: unknown): boolean {
-  if (value === null || value === undefined) return true
-  if (typeof value === 'string') return value.trim().length === 0
-  if (Array.isArray(value)) return value.length === 0
-  if (typeof value === 'object') return Object.keys(value).length === 0
-  return false
+  if (value === null || value === undefined) return true;
+  if (typeof value === "string") return value.trim().length === 0;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === "object") return Object.keys(value).length === 0;
+  return false;
 }
 
 /**
@@ -266,9 +266,9 @@ export function isEmpty(value: unknown): boolean {
  */
 export function safeJsonParse<T>(json: string, fallback: T): T {
   try {
-    return JSON.parse(json) as T
+    return JSON.parse(json) as T;
   } catch {
-    return fallback
+    return fallback;
   }
 }
 

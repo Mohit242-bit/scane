@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function TestButtonPage() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
   
-  console.log("TestButtonPage rendered, count:", count)
+  console.log("TestButtonPage rendered, count:", count);
 
   const handleClick = () => {
-    console.log("Button clicked! Current count:", count)
-    alert("Button clicked! Check console.")
-    setCount(count + 1)
-  }
+    console.log("Button clicked! Current count:", count);
+    alert("Button clicked! Check console.");
+    setCount(count + 1);
+  };
 
   return (
     <div className="p-8">
@@ -33,8 +33,8 @@ export default function TestButtonPage() {
           
           <button 
             onClick={() => {
-              console.log("Native button clicked!")
-              alert("Native button works!")
+              console.log("Native button clicked!");
+              alert("Native button works!");
             }}
             className="w-full p-2 bg-blue-500 text-white rounded"
           >
@@ -48,5 +48,5 @@ export default function TestButtonPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

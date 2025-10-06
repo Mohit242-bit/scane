@@ -1,4 +1,4 @@
-import type { Booking } from "./types"
+import type { Booking } from "./types";
 
 type Review = {
   id: string
@@ -32,18 +32,18 @@ const memoryDB: DB = (globalThis as any).__db || {
   documents: [],
   heldSlots: new Map(),
 }
-;(globalThis as any).__db = memoryDB
+;(globalThis as any).__db = memoryDB;
 
-export const db = memoryDB
+export const db = memoryDB;
 
 export function getBookingById(id: string) {
-  return db.bookings.find((b) => b.id === id) || null
+  return db.bookings.find((b) => b.id === id) || null;
 }
 
 export function getReviewsByBookingId(bookingId: string) {
-  return db.reviews.filter((r) => r.booking_id === bookingId)
+  return db.reviews.filter((r) => r.booking_id === bookingId);
 }
 
 export function getDocumentsByBookingId(bookingId: string) {
-  return db.documents.filter((d) => d.booking_id === bookingId)
+  return db.documents.filter((d) => d.booking_id === bookingId);
 }

@@ -3,5 +3,5 @@
 export async function GET(req: Request) {
   // ...existing code...
   // TODO: Implement applicant listing for service
-  return new Response('Not implemented', { status: 501 });
+  return new Response("Not implemented", { status: 501 });
 }

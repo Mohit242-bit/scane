@@ -1,62 +1,62 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Shield, AlertTriangle, Loader2, Chrome } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Eye, EyeOff, Shield, AlertTriangle, Loader2, Chrome } from "lucide-react";
 
 export default function AdminLoginPage() {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   // Check if already logged in
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("/api/admin/mvp-verify")
+        const response = await fetch("/api/admin/mvp-verify");
         if (response.ok) {
-          router.push("/admin")
+          router.push("/admin");
         }
       } catch (err) {
         // Not logged in, stay on login page
       }
-    }
-    checkAuth()
-  }, [router])
+    };
+    checkAuth();
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
       const response = await fetch("/api/admin/mvp-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
-      })
+      });
 
       if (response.ok) {
-        router.push("/admin")
-        router.refresh()
+        router.push("/admin");
+        router.refresh();
       } else {
-        const data = await response.json()
-        setError(data.error || "Login failed")
+        const data = await response.json();
+        setError(data.error || "Login failed");
       }
     } catch (err) {
-      setError("Network error occurred")
+      setError("Network error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50 p-4">
@@ -125,5 +125,5 @@ export default function AdminLoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

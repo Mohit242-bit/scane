@@ -1,30 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { createClient } from "@supabase/supabase-js"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Chrome, AlertCircle, CheckCircle, Info } from "lucide-react"
+import { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Chrome, AlertCircle, CheckCircle, Info } from "lucide-react";
 
 export default function OAuthTestPage() {
-  const [testResults, setTestResults] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [testResults, setTestResults] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  );
 
   const runOAuthTest = async () => {
-    setIsLoading(true)
-    setTestResults({})
+    setIsLoading(true);
+    setTestResults({});
     
     const results: any = {
       environment: {},
       oauthTest: {},
       errors: []
-    }
+    };
 
     try {
       // Test environment variables
@@ -33,24 +33,24 @@ export default function OAuthTestPage() {
         supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "✓ SET" : "✗ MISSING",
         urlValue: process.env.NEXT_PUBLIC_SUPABASE_URL,
         keyLength: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0
-      }
+      };
 
       // Test OAuth provider availability
       try {
-        const redirectTo = `${window.location.origin}/api/auth/callback?redirectTo=/partner/oauth-test`
+        const redirectTo = `${window.location.origin}/api/auth/callback?redirectTo=/partner/oauth-test`;
         
-        console.log("Testing OAuth with redirect:", redirectTo)
+        console.log("Testing OAuth with redirect:", redirectTo);
         
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {
             redirectTo,
             queryParams: {
-              access_type: 'offline',
-              prompt: 'none' // Use 'none' to avoid actual redirect during test
+              access_type: "offline",
+              prompt: "none" // Use 'none' to avoid actual redirect during test
             }
           }
-        })
+        });
 
         results.oauthTest = {
           success: !error,
@@ -58,10 +58,10 @@ export default function OAuthTestPage() {
           url: data?.url,
           error: error?.message,
           data: data
-        }
+        };
 
         if (error) {
-          results.errors.push(`OAuth Error: ${error.message}`)
+          results.errors.push(`OAuth Error: ${error.message}`);
         }
 
       } catch (oauthError: any) {
@@ -69,59 +69,59 @@ export default function OAuthTestPage() {
           success: false,
           error: oauthError.message,
           stack: oauthError.stack
-        }
-        results.errors.push(`OAuth Exception: ${oauthError.message}`)
+        };
+        results.errors.push(`OAuth Exception: ${oauthError.message}`);
       }
 
       // Test Supabase connection
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { user } } = await supabase.auth.getUser();
         results.connection = {
           canConnect: true,
           currentUser: user?.id || null
-        }
+        };
       } catch (connectionError: any) {
         results.connection = {
           canConnect: false,
           error: connectionError.message
-        }
-        results.errors.push(`Connection Error: ${connectionError.message}`)
+        };
+        results.errors.push(`Connection Error: ${connectionError.message}`);
       }
 
     } catch (generalError: any) {
-      results.errors.push(`General Error: ${generalError.message}`)
+      results.errors.push(`General Error: ${generalError.message}`);
     }
 
-    setTestResults(results)
-    setIsLoading(false)
-  }
+    setTestResults(results);
+    setIsLoading(false);
+  };
 
   const actuallyTryOAuth = async () => {
     try {
-      const redirectTo = `${window.location.origin}/api/auth/callback?redirectTo=/partner/oauth-test`
+      const redirectTo = `${window.location.origin}/api/auth/callback?redirectTo=/partner/oauth-test`;
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo,
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
+            access_type: "offline",
+            prompt: "consent"
           }
         }
-      })
+      });
 
       if (error) {
-        alert(`OAuth Error: ${error.message}`)
+        alert(`OAuth Error: ${error.message}`);
       } else if (data?.url) {
-        window.location.href = data.url
+        window.location.href = data.url;
       } else {
-        alert("No OAuth URL returned")
+        alert("No OAuth URL returned");
       }
     } catch (error: any) {
-      alert(`OAuth Exception: ${error.message}`)
+      alert(`OAuth Exception: ${error.message}`);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0AA1A7]/5 to-[#B7F171]/5 p-4">
@@ -226,5 +226,5 @@ export default function OAuthTestPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

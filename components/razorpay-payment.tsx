@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
-import LoadingSpinner from "./loading-spinner"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import LoadingSpinner from "./loading-spinner";
 
 interface RazorpayPaymentProps {
   bookingId: string
@@ -19,28 +19,28 @@ declare global {
 }
 
 export default function RazorpayPayment({ bookingId, amount, onSuccess, onError }: RazorpayPaymentProps) {
-  const [loading, setLoading] = useState(false)
-  const [scriptLoaded, setScriptLoaded] = useState(false)
-  const { toast } = useToast()
+  const [loading, setLoading] = useState(false);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Load Razorpay script
-    const script = document.createElement("script")
-    script.src = "https://checkout.razorpay.com/v1/checkout.js"
-    script.onload = () => setScriptLoaded(true)
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => setScriptLoaded(true);
     script.onerror = () => {
       toast({
         title: "Payment Error",
         description: "Failed to load payment gateway. Please try again.",
         variant: "destructive",
-      })
-    }
-    document.body.appendChild(script)
+      });
+    };
+    document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script)
-    }
-  }, [toast])
+      document.body.removeChild(script);
+    };
+  }, [toast]);
 
   const handlePayment = async () => {
     if (!scriptLoaded) {
@@ -48,11 +48,11 @@ export default function RazorpayPayment({ bookingId, amount, onSuccess, onError 
         title: "Payment Error",
         description: "Payment gateway is still loading. Please wait.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       // Create Razorpay order
@@ -60,13 +60,13 @@ export default function RazorpayPayment({ bookingId, amount, onSuccess, onError 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId }),
-      })
+      });
 
       if (!orderResponse.ok) {
-        throw new Error("Failed to create payment order")
+        throw new Error("Failed to create payment order");
       }
 
-      const orderData = await orderResponse.json()
+      const orderData = await orderResponse.json();
 
       // Initialize Razorpay
       const options = {
@@ -88,16 +88,16 @@ export default function RazorpayPayment({ bookingId, amount, onSuccess, onError 
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
               }),
-            })
+            });
 
             if (!verifyResponse.ok) {
-              throw new Error("Payment verification failed")
+              throw new Error("Payment verification failed");
             }
 
-            const verifyData = await verifyResponse.json()
-            onSuccess(verifyData)
+            const verifyData = await verifyResponse.json();
+            onSuccess(verifyData);
           } catch (error) {
-            onError(error)
+            onError(error);
           }
         },
         prefill: {
@@ -110,23 +110,23 @@ export default function RazorpayPayment({ bookingId, amount, onSuccess, onError 
         },
         modal: {
           ondismiss: () => {
-            setLoading(false)
+            setLoading(false);
             toast({
               title: "Payment Cancelled",
               description: "You can complete the payment anytime before the slot expires.",
-            })
+            });
           },
         },
-      }
+      };
 
-      const razorpay = new window.Razorpay(options)
-      razorpay.open()
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     } catch (error) {
-      console.error("Payment error:", error)
-      onError(error)
-      setLoading(false)
+      console.error("Payment error:", error);
+      onError(error);
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Button
@@ -143,5 +143,5 @@ export default function RazorpayPayment({ bookingId, amount, onSuccess, onError 
         `Pay ₹${amount} & Confirm`
       )}
     </Button>
-  )
+  );
 }

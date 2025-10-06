@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import Image from "next/image"
-import { useState, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Star, Shield, Users, Upload } from "lucide-react"
-import LocationHandler from "@/components/location-handler"
-import PrescriptionUpload from "@/components/prescription-upload"
-import { useRouter } from "next/navigation"
+import Link from "next/link";
+import Image from "next/image";
+import { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, MapPin, Star, Shield, Users, Upload } from "lucide-react";
+import LocationHandler from "@/components/location-handler";
+import PrescriptionUpload from "@/components/prescription-upload";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
-  const router = useRouter()
-  const [userLocation, setUserLocation] = useState<{ city: string; coordinates?: { lat: number; lng: number } } | null>(null)
+  const router = useRouter();
+  const [userLocation, setUserLocation] = useState<{ city: string; coordinates?: { lat: number; lng: number } } | null>(null);
 
   const handleLocationSet = useCallback((location: { city: string; coordinates?: { lat: number; lng: number } }) => {
-    setUserLocation(location)
-  }, [])
+    setUserLocation(location);
+  }, []);
 
   const handleTestsSelected = useCallback((tests: any[]) => {
     // Navigate to booking page with selected tests
-    const testIds = tests.map(t => t.id).join(',')
-    router.push(`/book?tests=${testIds}&city=${userLocation?.city || ''}`)
-  }, [router, userLocation])
+    const testIds = tests.map(t => t.id).join(",");
+    router.push(`/book?tests=${testIds}&city=${userLocation?.city || ""}`);
+  }, [router, userLocation]);
 
   return (
     <div className="min-h-screen">
@@ -321,5 +321,5 @@ export default function HomePage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

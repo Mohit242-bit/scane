@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import supabase from "@/lib/supabaseClient"
-import AdminGuard from "@/components/admin-guard"
-import AdminNavigation from "@/components/admin-navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import supabase from "@/lib/supabaseClient";
+import AdminGuard from "@/components/admin-guard";
+import AdminNavigation from "@/components/admin-navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { 
   CalendarDays, 
   Users, 
@@ -29,7 +29,7 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle
-} from "lucide-react"
+} from "lucide-react";
 
 interface Booking {
   id: number
@@ -101,54 +101,54 @@ interface User {
 }
 
 export default function AdminDashboard() {
-  const router = useRouter()
-  const { toast } = useToast()
+  const router = useRouter();
+  const { toast } = useToast();
 
   // Get session from Supabase
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession()
+      const { data: { session }, error } = await supabase.auth.getSession();
       if (error) {
-        console.error('Error getting session:', error)
+        console.error("Error getting session:", error);
       } else if (!session) {
         // No authenticated session
-        console.log('No session found')
+        console.log("No session found");
       }
-    }
-    getSession()
-  }, [])
+    };
+    getSession();
+  }, []);
 
-  const [bookings, setBookings] = useState<Booking[]>([])
-  const [services, setServices] = useState<Service[]>([])
-  const [centers, setCenters] = useState<Center[]>([])
-  const [partners, setPartners] = useState<Partner[]>([])
-  const [partnerStats, setPartnerStats] = useState<any>(null)
-  const [users, setUsers] = useState<User[]>([])
-  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null)
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [centers, setCenters] = useState<Center[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [partnerStats, setPartnerStats] = useState<any>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   // SQL editor states
-  const [sqlQuery, setSqlQuery] = useState<string>("SELECT * FROM bookings LIMIT 10")
-  const [sqlResults, setSqlResults] = useState<any[]>([])
-  const [sqlError, setSqlError] = useState<string | null>(null)
-  const [sqlLoading, setSqlLoading] = useState<boolean>(false)
-  const [sqlColumns, setSqlColumns] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
-  const [weekFilter, setWeekFilter] = useState<'this_week' | 'last_week' | 'all'>('this_week')
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const [sqlQuery, setSqlQuery] = useState<string>("SELECT * FROM bookings LIMIT 10");
+  const [sqlResults, setSqlResults] = useState<any[]>([]);
+  const [sqlError, setSqlError] = useState<string | null>(null);
+  const [sqlLoading, setSqlLoading] = useState<boolean>(false);
+  const [sqlColumns, setSqlColumns] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [weekFilter, setWeekFilter] = useState<"this_week" | "last_week" | "all">("this_week");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   // Fetch data
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       
       // Fetch admin stats
-      const statsRes = await fetch("/api/admin/stats")
-      const statsData = await statsRes.json()
+      const statsRes = await fetch("/api/admin/stats");
+      const statsData = await statsRes.json();
       
       // Fetch table data using admin API
       const [bookingsRes, servicesRes, centersRes, partnersRes, usersRes] = await Promise.all([
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
         fetch("/api/admin/tables?table=centers&limit=50"),
         fetch("/api/admin/partners"),
         fetch("/api/admin/users?limit=50")
-      ])
+      ]);
 
       const [bookingsData, servicesData, centersData, partnersResponse, usersData] = await Promise.all([
         bookingsRes.json(),
@@ -165,57 +165,57 @@ export default function AdminDashboard() {
         centersRes.json(),
         partnersRes.json(),
         usersRes.json()
-      ])
+      ]);
 
-      setBookings(bookingsData)
-      setServices(servicesData)
-      setCenters(centersData)
-      setPartners(partnersResponse.partners || [])
-      setPartnerStats(partnersResponse.stats || null)
-      setUsers(usersData)
+      setBookings(bookingsData);
+      setServices(servicesData);
+      setCenters(centersData);
+      setPartners(partnersResponse.partners || []);
+      setPartnerStats(partnersResponse.stats || null);
+      setUsers(usersData);
       
       // You can also set stats here if needed
-      console.log("Admin stats:", statsData)
+      console.log("Admin stats:", statsData);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to fetch data",
         variant: "destructive"
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Execute a safe SQL query via server API
   const runSql = async () => {
-    setSqlError(null)
-    setSqlResults([])
-    setSqlColumns([])
-    setSqlLoading(true)
+    setSqlError(null);
+    setSqlResults([]);
+    setSqlColumns([]);
+    setSqlLoading(true);
     try {
-      const res = await fetch('/api/admin/sql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/sql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sql: sqlQuery })
-      })
+      });
 
-      const json = await res.json()
+      const json = await res.json();
 
       if (!res.ok) {
-        setSqlError(json?.error || 'Query failed')
-        return
+        setSqlError(json?.error || "Query failed");
+        return;
       }
 
-      const data = json?.data || []
-      setSqlResults(data)
-      setSqlColumns(data.length ? Object.keys(data[0]) : [])
+      const data = json?.data || [];
+      setSqlResults(data);
+      setSqlColumns(data.length ? Object.keys(data[0]) : []);
     } catch (err) {
-      setSqlError('Network error')
+      setSqlError("Network error");
     } finally {
-      setSqlLoading(false)
+      setSqlLoading(false);
     }
-  }
+  };
 
   const updateBookingStatus = async (bookingId: number, status: string) => {
     try {
@@ -223,24 +223,24 @@ export default function AdminDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ table: "bookings", id: bookingId, status })
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to update booking")
+      if (!response.ok) throw new Error("Failed to update booking");
 
       toast({
         title: "Success",
         description: "Booking status updated"
-      })
+      });
 
-      fetchData() // Refresh data
+      fetchData(); // Refresh data
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update booking",
         variant: "destructive"
-      })
+      });
     }
-  }
+  };
 
   const updatePartnerStatus = async (partnerId: number, status: string) => {
     try {
@@ -248,24 +248,24 @@ export default function AdminDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ table: "partners", id: partnerId, status })
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to update partner")
+      if (!response.ok) throw new Error("Failed to update partner");
 
       toast({
         title: "Success",
         description: "Partner status updated"
-      })
+      });
 
-      fetchData() // Refresh data
+      fetchData(); // Refresh data
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update partner",
         variant: "destructive"
-      })
+      });
     }
-  }
+  };
 
   const getStatusBadge = (status: string, type: "booking" | "partner" | "payment") => {
     const variants = {
@@ -288,50 +288,50 @@ export default function AdminDashboard() {
         failed: "destructive",
         refunded: "secondary"
       }
-    } as const
+    } as const;
 
     return (
       <Badge variant={variants[type][status as keyof typeof variants[typeof type]] || "outline"}>
         {status.replace("_", " ").toUpperCase()}
       </Badge>
-    )
-  }
+    );
+  };
 
   const filteredBookings = bookings.filter(booking => {
     const matchesSearch = booking.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          booking.patient_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         booking.services?.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || booking.status === statusFilter
+                         booking.services?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
     // Week filter
-    const appointmentDate = new Date(booking.appointment_date)
+    const appointmentDate = new Date(booking.appointment_date);
 
     const getWeekRange = (weeksAgo: number) => {
-      const now = new Date()
+      const now = new Date();
       // Use Monday as start of week
-      const day = now.getDay() || 7 // Sunday -> 7
-      const monday = new Date(now)
-      monday.setHours(0,0,0,0)
-      monday.setDate(now.getDate() - (day - 1) - (weeksAgo * 7))
-      const sunday = new Date(monday)
-      sunday.setDate(monday.getDate() + 6)
-      sunday.setHours(23,59,59,999)
-      return { start: monday, end: sunday }
+      const day = now.getDay() || 7; // Sunday -> 7
+      const monday = new Date(now);
+      monday.setHours(0,0,0,0);
+      monday.setDate(now.getDate() - (day - 1) - (weeksAgo * 7));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23,59,59,999);
+      return { start: monday, end: sunday };
+    };
+
+    let matchesWeek = true;
+    if (weekFilter === "this_week") {
+      const { start, end } = getWeekRange(0);
+      matchesWeek = appointmentDate >= start && appointmentDate <= end;
+    } else if (weekFilter === "last_week") {
+      const { start, end } = getWeekRange(1);
+      matchesWeek = appointmentDate >= start && appointmentDate <= end;
     }
 
-    let matchesWeek = true
-    if (weekFilter === 'this_week') {
-      const { start, end } = getWeekRange(0)
-      matchesWeek = appointmentDate >= start && appointmentDate <= end
-    } else if (weekFilter === 'last_week') {
-      const { start, end } = getWeekRange(1)
-      matchesWeek = appointmentDate >= start && appointmentDate <= end
-    }
-
-    return matchesSearch && matchesStatus && matchesWeek
-  })
+    return matchesSearch && matchesStatus && matchesWeek;
+  });
 
   // Sort latest first by appointment_date
-  filteredBookings.sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime())
+  filteredBookings.sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime());
 
   if (loading) {
     return (
@@ -343,7 +343,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       </AdminGuard>
-    )
+    );
   }
 
   return (
@@ -442,7 +442,7 @@ export default function AdminDashboard() {
               <div className="text-center">
                 <p className="text-sm font-medium text-[#5B6B7A]">Total Revenue</p>
                 <p className="text-2xl font-bold text-[#0B1B2B]">
-                  ₹{partnerStats.totalRevenue.toLocaleString('en-IN')}
+                  ₹{partnerStats.totalRevenue.toLocaleString("en-IN")}
                 </p>
               </div>
             </CardContent>
@@ -653,7 +653,7 @@ export default function AdminDashboard() {
                           <div>
                             <p className="text-sm text-green-700">Total Revenue</p>
                             <p className="text-2xl font-bold text-green-800">
-                              ₹{partnerStats.totalRevenue.toLocaleString('en-IN')}
+                              ₹{partnerStats.totalRevenue.toLocaleString("en-IN")}
                             </p>
                             <p className="text-sm text-green-600">Across all partners</p>
                           </div>
@@ -667,7 +667,7 @@ export default function AdminDashboard() {
                             <p className="text-sm text-blue-700">Avg Revenue/Partner</p>
                             <p className="text-2xl font-bold text-blue-800">
                               ₹{partnerStats.totalPartners > 0 ? 
-                                Math.round(partnerStats.totalRevenue / partnerStats.totalPartners).toLocaleString('en-IN') : '0'
+                                Math.round(partnerStats.totalRevenue / partnerStats.totalPartners).toLocaleString("en-IN") : "0"
                               }
                             </p>
                             <p className="text-sm text-blue-600">Per active partner</p>
@@ -716,10 +716,10 @@ export default function AdminDashboard() {
                                 <TableCell>
                                   <div className="flex items-center">
                                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                      index === 0 ? 'bg-yellow-200 text-yellow-800' :
-                                      index === 1 ? 'bg-gray-200 text-gray-800' :
-                                      index === 2 ? 'bg-orange-200 text-orange-800' :
-                                      'bg-blue-100 text-blue-800'
+                                      index === 0 ? "bg-yellow-200 text-yellow-800" :
+                                      index === 1 ? "bg-gray-200 text-gray-800" :
+                                      index === 2 ? "bg-orange-200 text-orange-800" :
+                                      "bg-blue-100 text-blue-800"
                                     }`}>
                                       #{index + 1}
                                     </div>
@@ -733,7 +733,7 @@ export default function AdminDashboard() {
                                 </TableCell>
                                 <TableCell>
                                   <div className="font-medium text-green-600">
-                                    ₹{partner.stats?.totalRevenue.toLocaleString('en-IN')}
+                                    ₹{partner.stats?.totalRevenue.toLocaleString("en-IN")}
                                   </div>
                                 </TableCell>
                                 <TableCell>
@@ -755,7 +755,7 @@ export default function AdminDashboard() {
                                 <TableCell>
                                   <div className="font-medium">
                                     {partner.stats?.avgRating > 0 ? 
-                                      `${partner.stats.avgRating} ⭐` : 'N/A'
+                                      `${partner.stats.avgRating} ⭐` : "N/A"
                                     }
                                   </div>
                                 </TableCell>
@@ -945,9 +945,9 @@ export default function AdminDashboard() {
                   />
                   <div className="flex gap-2">
                     <Button onClick={runSql} disabled={sqlLoading}>
-                      {sqlLoading ? 'Running...' : 'Run'}
+                      {sqlLoading ? "Running..." : "Run"}
                     </Button>
-                    <Button variant="ghost" onClick={() => { setSqlQuery('SELECT * FROM bookings LIMIT 10'); setSqlResults([]); setSqlError(null); }}>
+                    <Button variant="ghost" onClick={() => { setSqlQuery("SELECT * FROM bookings LIMIT 10"); setSqlResults([]); setSqlError(null); }}>
                       Reset
                     </Button>
                   </div>
@@ -969,7 +969,7 @@ export default function AdminDashboard() {
                         {sqlResults.map((row, i) => (
                           <TableRow key={i}>
                             {sqlColumns.map((col) => (
-                              <TableCell key={col}>{String(row[col] ?? '')}</TableCell>
+                              <TableCell key={col}>{String(row[col] ?? "")}</TableCell>
                             ))}
                           </TableRow>
                         ))}
@@ -1192,13 +1192,13 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{partner.users?.full_name || 'N/A'}</div>
+                            <div className="font-medium">{partner.users?.full_name || "N/A"}</div>
                             <div className="text-sm text-gray-500">{partner.users?.email}</div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{partner.city || 'N/A'}</div>
+                            <div className="font-medium">{partner.city || "N/A"}</div>
                             {partner.cities && partner.cities !== partner.city && (
                               <div className="text-sm text-gray-500">Also: {partner.cities}</div>
                             )}
@@ -1211,7 +1211,7 @@ export default function AdminDashboard() {
                                 <div>{partner.stats.totalCenters} centers</div>
                                 <div>{partner.stats.totalServices} services</div>
                                 <div className="text-green-600">
-                                  ₹{partner.stats.totalRevenue.toLocaleString('en-IN')}
+                                  ₹{partner.stats.totalRevenue.toLocaleString("en-IN")}
                                 </div>
                                 {partner.stats.avgRating > 0 && (
                                   <div>{partner.stats.avgRating} ⭐</div>
@@ -1356,7 +1356,7 @@ export default function AdminDashboard() {
                   <CardContent className="space-y-2">
                     <div>
                       <label className="text-xs text-gray-600">Name</label>
-                      <div className="font-medium">{selectedPartner.users?.full_name || 'N/A'}</div>
+                      <div className="font-medium">{selectedPartner.users?.full_name || "N/A"}</div>
                     </div>
                     <div>
                       <label className="text-xs text-gray-600">Email</label>
@@ -1419,7 +1419,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="text-center p-3 bg-purple-50 rounded-lg">
                         <div className="text-2xl font-bold text-purple-600">
-                          ₹{selectedPartner.stats.totalRevenue.toLocaleString('en-IN')}
+                          ₹{selectedPartner.stats.totalRevenue.toLocaleString("en-IN")}
                         </div>
                         <div className="text-xs text-gray-600">Revenue</div>
                         {selectedPartner.stats.avgRating > 0 && (
@@ -1439,8 +1439,8 @@ export default function AdminDashboard() {
                   <>
                     <Button 
                       onClick={() => {
-                        updatePartnerStatus(selectedPartner.id, "approved")
-                        setSelectedPartner(null)
+                        updatePartnerStatus(selectedPartner.id, "approved");
+                        setSelectedPartner(null);
                       }}
                       className="bg-green-600 hover:bg-green-700"
                     >
@@ -1450,8 +1450,8 @@ export default function AdminDashboard() {
                     <Button 
                       variant="destructive"
                       onClick={() => {
-                        updatePartnerStatus(selectedPartner.id, "rejected")
-                        setSelectedPartner(null)
+                        updatePartnerStatus(selectedPartner.id, "rejected");
+                        setSelectedPartner(null);
                       }}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
@@ -1463,8 +1463,8 @@ export default function AdminDashboard() {
                   <Button 
                     variant="outline"
                     onClick={() => {
-                      updatePartnerStatus(selectedPartner.id, "suspended")
-                      setSelectedPartner(null)
+                      updatePartnerStatus(selectedPartner.id, "suspended");
+                      setSelectedPartner(null);
                     }}
                   >
                     <AlertTriangle className="h-4 w-4 mr-2" />
@@ -1474,8 +1474,8 @@ export default function AdminDashboard() {
                 {selectedPartner.status === "suspended" && (
                   <Button 
                     onClick={() => {
-                      updatePartnerStatus(selectedPartner.id, "approved")
-                      setSelectedPartner(null)
+                      updatePartnerStatus(selectedPartner.id, "approved");
+                      setSelectedPartner(null);
                     }}
                     className="bg-green-600 hover:bg-green-700"
                   >
@@ -1493,5 +1493,5 @@ export default function AdminDashboard() {
       )}
       </div>
     </AdminGuard>
-  )
+  );
 }

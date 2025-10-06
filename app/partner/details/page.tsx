@@ -1,64 +1,64 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
-import { Building2, User, MapPin, Phone, Mail, CheckCircle } from "lucide-react"
-import { createClient } from "@/lib/supabase-browser"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { Building2, User, MapPin, Phone, Mail, CheckCircle } from "lucide-react";
+import { createClient } from "@/lib/supabase-browser";
 
 export default function PartnerDetailsPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const supabase = createClient()
+  const router = useRouter();
+  const { toast } = useToast();
+  const supabase = createClient();
   
-  const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [partnerData, setPartnerData] = useState<any>(null)
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [partnerData, setPartnerData] = useState<any>(null);
   const [formData, setFormData] = useState({
     business_name: "",
     business_email: "",
     business_phone: "",
     address: "",
     city: ""
-  })
+  });
 
   useEffect(() => {
-    checkUserAndLoadData()
-  }, [])
+    checkUserAndLoadData();
+  }, []);
 
   const checkUserAndLoadData = async () => {
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        router.push("/auth/signin")
-        return
+        router.push("/auth/signin");
+        return;
       }
       
-      setUser(user)
+      setUser(user);
       
       // Check if user has partner role
       const { data: userData } = await supabase
         .from("users")
         .select("role")
         .eq("id", user.id)
-        .single()
+        .single();
       
       if (userData?.role !== "partner") {
         toast({
           title: "Access Denied",
           description: "You need to sign up as a partner first",
           variant: "destructive"
-        })
-        router.push("/partner-us")
-        return
+        });
+        router.push("/partner-us");
+        return;
       }
       
       // Load existing partner data if any
@@ -66,37 +66,37 @@ export default function PartnerDetailsPage() {
         .from("partners")
         .select("*")
         .eq("user_id", user.id)
-        .single()
+        .single();
       
       if (existingPartner) {
-        setPartnerData(existingPartner)
+        setPartnerData(existingPartner);
         setFormData({
           business_name: existingPartner.business_name || "",
           business_email: existingPartner.business_email || "",
           business_phone: existingPartner.business_phone || "",
           address: existingPartner.address || "",
           city: existingPartner.city || ""
-        })
+        });
       }
       
     } catch (error) {
-      console.error("Error loading user data:", error)
+      console.error("Error loading user data:", error);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
     if (!formData.business_name || !formData.city) {
       toast({
         title: "Missing Information",
         description: "Please fill in at least business name and city",
         variant: "destructive"
-      })
-      return
+      });
+      return;
     }
     
-    setLoading(true)
+    setLoading(true);
     
     try {
       if (partnerData) {
@@ -107,14 +107,14 @@ export default function PartnerDetailsPage() {
             ...formData,
             updated_at: new Date().toISOString()
           })
-          .eq("id", partnerData.id)
+          .eq("id", partnerData.id);
         
-        if (error) throw error
+        if (error) throw error;
         
         toast({
           title: "Success",
           description: "Partner details updated successfully!"
-        })
+        });
       } else {
         // Create new partner entry
         const { error } = await supabase
@@ -125,30 +125,30 @@ export default function PartnerDetailsPage() {
             status: "pending",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          })
+          });
         
-        if (error) throw error
+        if (error) throw error;
         
         toast({
           title: "Success",
           description: "Partner details saved successfully!"
-        })
+        });
       }
       
       // Redirect to partner dashboard
-      router.push("/partner/dashboard")
+      router.push("/partner/dashboard");
       
     } catch (error: any) {
-      console.error("Error saving partner data:", error)
+      console.error("Error saving partner data:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to save partner details",
         variant: "destructive"
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (!user) {
     return (
@@ -158,7 +158,7 @@ export default function PartnerDetailsPage() {
           <p className="text-gray-600">Checking your partner status</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -289,5 +289,5 @@ export default function PartnerDetailsPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

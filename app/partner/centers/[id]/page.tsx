@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Building2, 
   MapPin, 
@@ -23,9 +23,9 @@ import {
   Plus,
   Eye,
   TrendingUp
-} from "lucide-react"
-import { createClient } from "@/lib/supabase-browser"
-import { useToast } from "@/hooks/use-toast"
+} from "lucide-react";
+import { createClient } from "@/lib/supabase-browser";
+import { useToast } from "@/hooks/use-toast";
 
 interface CenterDetails {
   id: number
@@ -68,75 +68,75 @@ interface Booking {
 }
 
 export default function CenterDetailsPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const supabase = createClient()
+  const router = useRouter();
+  const { toast } = useToast();
+  const supabase = createClient();
   
-  const [center, setCenter] = useState<CenterDetails | null>(null)
-  const [bookings, setBookings] = useState<Booking[]>([])
+  const [center, setCenter] = useState<CenterDetails | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingStats, setBookingStats] = useState<BookingStats>({
     total: 0, confirmed: 0, pending: 0, completed: 0, cancelled: 0,
     totalRevenue: 0, todayBookings: 0
-  })
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("overview")
+  });
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
-    fetchCenterData()
-  }, [params.id])
+    fetchCenterData();
+  }, [params.id]);
 
   const fetchCenterData = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       
-      const authToken = (await supabase.auth.getSession()).data.session?.access_token
+      const authToken = (await supabase.auth.getSession()).data.session?.access_token;
       
       // Fetch center details
       const centerResponse = await fetch(`/api/partner/centers/${params.id}`, {
         headers: {
-          'Authorization': `Bearer ${authToken}`
+          "Authorization": `Bearer ${authToken}`
         }
-      })
+      });
       
       if (!centerResponse.ok) {
-        throw new Error('Failed to fetch center details')
+        throw new Error("Failed to fetch center details");
       }
       
-      const centerData = await centerResponse.json()
-      setCenter(centerData.center)
+      const centerData = await centerResponse.json();
+      setCenter(centerData.center);
       
       // Fetch bookings for this center
       const bookingsResponse = await fetch(`/api/partner/centers/${params.id}/bookings`, {
         headers: {
-          'Authorization': `Bearer ${authToken}`
+          "Authorization": `Bearer ${authToken}`
         }
-      })
+      });
       
       if (bookingsResponse.ok) {
-        const bookingsData = await bookingsResponse.json()
-        setBookings(bookingsData.bookings || [])
-        setBookingStats(bookingsData.stats || bookingStats)
+        const bookingsData = await bookingsResponse.json();
+        setBookings(bookingsData.bookings || []);
+        setBookingStats(bookingsData.stats || bookingStats);
       }
       
     } catch (error: any) {
-      console.error("Error fetching center data:", error)
+      console.error("Error fetching center data:", error);
       toast({
         title: "Error",
         description: "Failed to load center details",
         variant: "destructive"
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       minimumFractionDigits: 0
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
@@ -145,8 +145,8 @@ export default function CenterDetailsPage({ params }: { params: { id: string } }
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit"
-    })
-  }
+    });
+  };
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -154,21 +154,21 @@ export default function CenterDetailsPage({ params }: { params: { id: string } }
       pending: "bg-yellow-100 text-yellow-800",
       completed: "bg-blue-100 text-blue-800",
       cancelled: "bg-red-100 text-red-800"
-    }
-    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800"
-  }
+    };
+    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
 
   const getOperatingHoursText = (operatingHours: any) => {
-    if (!operatingHours) return "Not specified"
+    if (!operatingHours) return "Not specified";
     
-    const days = Object.keys(operatingHours)
-    if (days.length === 0) return "Not specified"
+    const days = Object.keys(operatingHours);
+    if (days.length === 0) return "Not specified";
     
-    const firstDay = operatingHours[days[0]]
-    if (firstDay?.closed) return "Varies by day"
+    const firstDay = operatingHours[days[0]];
+    if (firstDay?.closed) return "Varies by day";
     
-    return `${firstDay?.start || '09:00'} - ${firstDay?.end || '18:00'}`
-  }
+    return `${firstDay?.start || "09:00"} - ${firstDay?.end || "18:00"}`;
+  };
 
   if (loading) {
     return (
@@ -178,7 +178,7 @@ export default function CenterDetailsPage({ params }: { params: { id: string } }
           <p className="text-[#5B6B7A]">Loading center details...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!center) {
@@ -197,7 +197,7 @@ export default function CenterDetailsPage({ params }: { params: { id: string } }
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -540,5 +540,5 @@ export default function CenterDetailsPage({ params }: { params: { id: string } }
         </Tabs>
       </div>
     </div>
-  )
+  );
 }

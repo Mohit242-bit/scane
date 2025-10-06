@@ -15,81 +15,81 @@ export const BOOKING = {
   MAX_AGE: 120,
   /** Maximum notes length */
   MAX_NOTES_LENGTH: 500,
-} as const
+} as const;
 
 /**
  * Payment related constants
  */
 export const PAYMENT = {
   /** Currency code */
-  CURRENCY: 'INR',
+  CURRENCY: "INR",
   /** Conversion factor for paise to rupees */
   PAISE_TO_RUPEES: 100,
   /** Default payment timeout in milliseconds */
   TIMEOUT_MS: 30000,
-} as const
+} as const;
 
 /**
  * User roles
  */
 export const ROLES = {
-  CUSTOMER: 'customer',
-  PARTNER: 'partner',
-  ADMIN: 'admin',
-} as const
+  CUSTOMER: "customer",
+  PARTNER: "partner",
+  ADMIN: "admin",
+} as const;
 
 /**
  * Booking statuses
  */
 export const BOOKING_STATUS = {
-  PENDING: 'pending',
-  CONFIRMED: 'confirmed',
-  CANCELLED: 'cancelled',
-  COMPLETED: 'completed',
-} as const
+  PENDING: "pending",
+  CONFIRMED: "confirmed",
+  CANCELLED: "cancelled",
+  COMPLETED: "completed",
+} as const;
 
 /**
  * Payment statuses
  */
 export const PAYMENT_STATUS = {
-  PENDING: 'pending',
-  PAID: 'paid',
-  FAILED: 'failed',
-  REFUNDED: 'refunded',
-} as const
+  PENDING: "pending",
+  PAID: "paid",
+  FAILED: "failed",
+  REFUNDED: "refunded",
+} as const;
 
 /**
  * Slot statuses
  */
 export const SLOT_STATUS = {
-  OPEN: 'OPEN',
-  BOOKED: 'BOOKED',
-  BLOCKED: 'BLOCKED',
-} as const
+  OPEN: "OPEN",
+  BOOKED: "BOOKED",
+  BLOCKED: "BLOCKED",
+} as const;
 
 /**
  * Document types
  */
 export const DOCUMENT_TYPES = {
-  PRESCRIPTION: 'PRESCRIPTION',
-  REPORT: 'REPORT',
-  INVOICE: 'INVOICE',
-  ID_PROOF: 'ID_PROOF',
-} as const
+  PRESCRIPTION: "PRESCRIPTION",
+  REPORT: "REPORT",
+  INVOICE: "INVOICE",
+  ID_PROOF: "ID_PROOF",
+} as const;
 
 /**
  * API error codes
  */
 export const ERROR_CODES = {
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
-  AUTHENTICATION_ERROR: 'AUTHENTICATION_ERROR',
-  AUTHORIZATION_ERROR: 'AUTHORIZATION_ERROR',
-  NOT_FOUND: 'NOT_FOUND',
-  CONFLICT: 'CONFLICT',
-  RATE_LIMIT_ERROR: 'RATE_LIMIT_ERROR',
-  EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
-} as const
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  AUTHENTICATION_ERROR: "AUTHENTICATION_ERROR",
+  AUTHORIZATION_ERROR: "AUTHORIZATION_ERROR",
+  NOT_FOUND: "NOT_FOUND",
+  CONFLICT: "CONFLICT",
+  RATE_LIMIT_ERROR: "RATE_LIMIT_ERROR",
+  EXTERNAL_SERVICE_ERROR: "EXTERNAL_SERVICE_ERROR",
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+} as const;
 
 /**
  * HTTP status codes
@@ -107,7 +107,7 @@ export const HTTP_STATUS = {
   INTERNAL_SERVER_ERROR: 500,
   BAD_GATEWAY: 502,
   SERVICE_UNAVAILABLE: 503,
-} as const
+} as const;
 
 /**
  * Pagination defaults
@@ -116,7 +116,7 @@ export const PAGINATION = {
   DEFAULT_PAGE: 1,
   DEFAULT_PAGE_SIZE: 20,
   MAX_PAGE_SIZE: 100,
-} as const
+} as const;
 
 /**
  * File upload limits
@@ -125,10 +125,10 @@ export const FILE_UPLOAD = {
   /** Maximum file size in bytes (5MB) */
   MAX_SIZE_BYTES: 5 * 1024 * 1024,
   /** Allowed file types for prescriptions */
-  ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+  ALLOWED_TYPES: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
   /** Maximum number of files per upload */
   MAX_FILES: 5,
-} as const
+} as const;
 
 /**
  * Cache durations in seconds
@@ -142,7 +142,7 @@ export const CACHE_DURATION = {
   LONG: 60 * 60,
   /** Very long cache - 24 hours */
   VERY_LONG: 24 * 60 * 60,
-} as const
+} as const;
 
 /**
  * Rate limiting
@@ -154,27 +154,27 @@ export const RATE_LIMIT = {
   MAX_REQUESTS: 60,
   /** Strict limit for sensitive operations */
   STRICT_MAX_REQUESTS: 10,
-} as const
+} as const;
 
 /**
  * App metadata
  */
 export const APP = {
-  NAME: 'ScanEzy',
-  DESCRIPTION: 'Fast, convenient, and reliable diagnostic services',
-  SUPPORT_EMAIL: 'support@scanezy.com',
-  SUPPORT_PHONE: '+91-1800-123-4567',
-} as const
+  NAME: "ScanEzy",
+  DESCRIPTION: "Fast, convenient, and reliable diagnostic services",
+  SUPPORT_EMAIL: "support@scanezy.com",
+  SUPPORT_PHONE: "+91-1800-123-4567",
+} as const;
 
 /**
  * Date/Time formats
  */
 export const DATE_FORMATS = {
-  DISPLAY: 'dd MMM yyyy',
+  DISPLAY: "dd MMM yyyy",
   ISO: "yyyy-MM-dd'T'HH:mm:ss.SSSxxx",
-  TIME: 'HH:mm',
-  TIME_12H: 'hh:mm a',
-} as const
+  TIME: "HH:mm",
+  TIME_12H: "hh:mm a",
+} as const;
 
 /**
  * Validation patterns
@@ -186,4 +186,4 @@ export const VALIDATION = {
   EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   /** Indian PIN code pattern */
   PINCODE_REGEX: /^[1-9][0-9]{5}$/,
-} as const
+} as const;

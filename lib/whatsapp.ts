@@ -1,4 +1,4 @@
-import { config } from "./config"
+import { config } from "./config";
 
 interface WhatsAppMessage {
   to: string
@@ -17,9 +17,9 @@ interface WhatsAppMessage {
 }
 
 class WhatsAppService {
-  private baseUrl = "https://graph.facebook.com/v18.0"
-  private token = config.communication.whatsapp.token
-  private phoneNumberId = config.communication.whatsapp.phoneNumberId
+  private baseUrl = "https://graph.facebook.com/v18.0";
+  private token = config.communication.whatsapp.token;
+  private phoneNumberId = config.communication.whatsapp.phoneNumberId;
 
   async sendMessage(message: WhatsAppMessage): Promise<boolean> {
     try {
@@ -30,18 +30,18 @@ class WhatsAppService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(message),
-      })
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        console.error("WhatsApp API error:", error)
-        return false
+        const error = await response.json();
+        console.error("WhatsApp API error:", error);
+        return false;
       }
 
-      return true
+      return true;
     } catch (error) {
-      console.error("WhatsApp send error:", error)
-      return false
+      console.error("WhatsApp send error:", error);
+      return false;
     }
   }
 
@@ -62,7 +62,7 @@ class WhatsAppService {
           },
         ],
       },
-    })
+    });
   }
 
   async sendBookingConfirmation(
@@ -94,7 +94,7 @@ class WhatsAppService {
           },
         ],
       },
-    })
+    });
   }
 
   async sendReportReady(phone: string, bookingId: string, downloadLink: string): Promise<boolean> {
@@ -114,7 +114,7 @@ class WhatsAppService {
           },
         ],
       },
-    })
+    });
   }
 
   async sendReminder(
@@ -144,8 +144,8 @@ class WhatsAppService {
           },
         ],
       },
-    })
+    });
   }
 }
 
-export const whatsapp = new WhatsAppService()
+export const whatsapp = new WhatsAppService();

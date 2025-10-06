@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Calendar } from "@/components/ui/calendar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Check, MapPin, ShieldCheck, Timer, Zap, AlertCircle } from "lucide-react"
-import { services, citiesSeed, seededCentersFor } from "@/lib/data"
-import type { Center, Service, Slot } from "@/lib/types"
-import { cn } from "@/lib/utils"
-import { trackEvent } from "@/lib/events"
-import { useToast } from "@/hooks/use-toast"
-import { createClient } from "@/lib/supabase-browser"
-import LoadingSpinner from "@/components/loading-spinner"
-import ErrorBoundary from "@/components/error-boundary"
-import RazorpayPayment from "@/components/razorpay-payment"
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Check, MapPin, ShieldCheck, Timer, Zap, AlertCircle } from "lucide-react";
+import { services, citiesSeed, seededCentersFor } from "@/lib/data";
+import type { Center, Service, Slot } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/events";
+import { useToast } from "@/hooks/use-toast";
+import { createClient } from "@/lib/supabase-browser";
+import LoadingSpinner from "@/components/loading-spinner";
+import ErrorBoundary from "@/components/error-boundary";
+import RazorpayPayment from "@/components/razorpay-payment";
 
 type FlowProps = {
   defaultService?: string
@@ -32,57 +32,57 @@ export default function BookingFlow({
   defaultCity = "mumbai",
   defaultWhen = "soonest",
 }: FlowProps) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const supabase = createClient()
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const { toast } = useToast();
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const servicesList = useMemo(() => services, [])
-  const cities = useMemo(() => citiesSeed(), [])
-  const [serviceSlug, setServiceSlug] = useState(defaultService)
-  const [citySlug, setCitySlug] = useState(defaultCity)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
-  const [slots, setSlots] = useState<Slot[]>([])
-  const [centers, setCenters] = useState<Center[]>([])
-  const [loadingSlots, setLoadingSlots] = useState(false)
-  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
+  const servicesList = useMemo(() => services, []);
+  const cities = useMemo(() => citiesSeed(), []);
+  const [serviceSlug, setServiceSlug] = useState(defaultService);
+  const [citySlug, setCitySlug] = useState(defaultCity);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [centers, setCenters] = useState<Center[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
 
   // Step state: 1 select, 2 auth, 3 pay
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(1);
 
   // Booking
-  const [bookingId, setBookingId] = useState<string | null>(null)
-  const [holdTimer, setHoldTimer] = useState<number>(0)
-  const holdTimerRef = useRef<number | null>(null)
-  const holdExpiresAtRef = useRef<number | null>(null)
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [holdTimer, setHoldTimer] = useState<number>(0);
+  const holdTimerRef = useRef<number | null>(null);
+  const holdExpiresAtRef = useRef<number | null>(null);
 
-  const chosenService: Service | undefined = servicesList.find((s) => s.id === serviceSlug)
-  const city = cities.find((c) => c.slug === citySlug)
+  const chosenService: Service | undefined = servicesList.find((s) => s.id === serviceSlug);
+  const city = cities.find((c) => c.slug === citySlug);
 
   // Authentication check
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
       } catch (error) {
-        console.error('Error getting user:', error)
-        setUser(null)
+        console.error("Error getting user:", error);
+        setUser(null);
       }
-    }
+    };
 
-    getUser()
+    getUser();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user ?? null)
+        setUser(session?.user ?? null);
       }
-    )
+    );
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     // Track service view
@@ -90,90 +90,90 @@ export default function BookingFlow({
       trackEvent("service_viewed", {
         service_id: chosenService.id,
         city: citySlug,
-      })
+      });
     }
-  }, [chosenService, citySlug])
+  }, [chosenService, citySlug]);
 
   useEffect(() => {
     // Seed centers and slots for the selected service/city window
-    const centersSeeded = seededCentersFor(citySlug)
-    setCenters(centersSeeded)
-  }, [citySlug])
+    const centersSeeded = seededCentersFor(citySlug);
+    setCenters(centersSeeded);
+  }, [citySlug]);
 
   useEffect(() => {
     async function loadSlots() {
-      setLoadingSlots(true)
+      setLoadingSlots(true);
       try {
         const response = await fetch(
           `/api/slots?city=${citySlug}&service=${serviceSlug}${selectedDate ? `&date=${selectedDate.toISOString()}` : ""}`,
-        )
+        );
 
         if (!response.ok) {
-          throw new Error("Failed to load slots")
+          throw new Error("Failed to load slots");
         }
 
-        const data = await response.json()
-        setSlots(data.slots || [])
-        setCenters(data.centers || [])
+        const data = await response.json();
+        setSlots(data.slots || []);
+        setCenters(data.centers || []);
 
         trackEvent("slot_checked", {
           service_id: chosenService?.id,
           city: citySlug,
           slots_found: data.slots?.length || 0,
-        })
+        });
       } catch (error) {
         toast({
           title: "Error loading slots",
           description: "Please try again or contact support.",
           variant: "destructive",
-        })
+        });
       } finally {
-        setLoadingSlots(false)
+        setLoadingSlots(false);
       }
     }
-    loadSlots()
-  }, [citySlug, serviceSlug, selectedDate, centers, chosenService, toast])
+    loadSlots();
+  }, [citySlug, serviceSlug, selectedDate, centers, chosenService, toast]);
 
   // Clean up hold countdown
   useEffect(() => {
     return () => {
-      if (holdTimerRef.current) window.clearInterval(holdTimerRef.current)
-    }
-  }, [])
+      if (holdTimerRef.current) window.clearInterval(holdTimerRef.current);
+    };
+  }, []);
 
   // Hold timer countdown
   useEffect(() => {
     if (holdExpiresAtRef.current) {
       holdTimerRef.current = window.setInterval(() => {
-        const remaining = Math.max(0, holdExpiresAtRef.current! - Date.now())
-        setHoldTimer(Math.ceil(remaining / 1000))
+        const remaining = Math.max(0, holdExpiresAtRef.current! - Date.now());
+        setHoldTimer(Math.ceil(remaining / 1000));
         if (remaining <= 0) {
-          window.clearInterval(holdTimerRef.current!)
-          holdTimerRef.current = null
+          window.clearInterval(holdTimerRef.current!);
+          holdTimerRef.current = null;
           toast({
             title: "Slot hold expired",
             description: "Please select a new slot to continue.",
             variant: "destructive",
-          })
-          setStep(1)
-          setBookingId(null)
+          });
+          setStep(1);
+          setBookingId(null);
         }
-      }, 1000)
+      }, 1000);
     }
     return () => {
-      if (holdTimerRef.current) window.clearInterval(holdTimerRef.current)
-    }
-  }, [holdExpiresAtRef.current, toast])
+      if (holdTimerRef.current) window.clearInterval(holdTimerRef.current);
+    };
+  }, [holdExpiresAtRef.current, toast]);
 
   const handleSlotSelection = async () => {
-    if (!selectedSlot) return
+    if (!selectedSlot) return;
 
     // Check if user is authenticated
     if (!user) {
       // Redirect to sign in with callback
-      const callbackUrl = `/book?service=${serviceSlug}&city=${citySlug}&slot=${selectedSlot.id}`
-      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
-      return
+      const callbackUrl = `/book?service=${serviceSlug}&city=${citySlug}&slot=${selectedSlot.id}`;
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+      return;
     }
 
     // Create booking and hold slot
@@ -189,16 +189,16 @@ export default function BookingFlow({
           serviceSlug,
           slotId: selectedSlot.id,
         }),
-      })
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to create booking")
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create booking");
       }
 
-      const data = await response.json()
-      setBookingId(data.id)
-      holdExpiresAtRef.current = data.holdExpiresAt
+      const data = await response.json();
+      setBookingId(data.id);
+      holdExpiresAtRef.current = data.holdExpiresAt;
 
       trackEvent("booking_initiated", {
         booking_id: data.id,
@@ -206,45 +206,45 @@ export default function BookingFlow({
         center_hint: centers.find((c) => c.id === selectedSlot.center_id)?.area_hint,
         price: selectedSlot.price,
         user_id: user?.id,
-      })
+      });
 
-      setStep(3)
+      setStep(3);
       toast({
         title: "Slot reserved",
         description: "You have 7 minutes to complete payment.",
-      })
+      });
     } catch (error: any) {
       toast({
         title: "Booking failed",
         description: error.message || "Please try again.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handlePaymentSuccess = (paymentData: any) => {
     trackEvent("payment_succeeded", {
       booking_id: paymentData.bookingId,
       amount: selectedSlot?.price,
       user_id: user?.id,
-    })
+    });
 
-    router.push(`/confirm/${paymentData.bookingId}`)
-  }
+    router.push(`/confirm/${paymentData.bookingId}`);
+  };
 
   const handlePaymentError = (error: any) => {
     toast({
       title: "Payment failed",
       description: error.message || "Please try again.",
       variant: "destructive",
-    })
+    });
 
     trackEvent("payment_failed", {
       booking_id: bookingId,
       error: error.message,
       user_id: user?.id,
-    })
-  }
+    });
+  };
 
   const stepItem = (n: number, label: string) => (
     <div className="flex items-center gap-2" key={n}>
@@ -263,7 +263,7 @@ export default function BookingFlow({
       </div>
       <div className={cn("text-sm", n <= step ? "text-[#0B1B2B]" : "text-[#5B6B7A]")}>{label}</div>
     </div>
-  )
+  );
 
   return (
     <ErrorBoundary>
@@ -359,15 +359,15 @@ export default function BookingFlow({
                     </div>
                     <ul className="grid gap-3" role="list">
                       {slots.slice(0, 12).map((slot) => {
-                        const center = centers.find((c) => c.id === slot.center_id)
-                        if (!center) return null
-                        const start = new Date(slot.start_ts)
-                        const time = start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                        const center = centers.find((c) => c.id === slot.center_id);
+                        if (!center) return null;
+                        const start = new Date(slot.start_ts);
+                        const time = start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
                         const dateStr = start.toLocaleDateString([], {
                           weekday: "short",
                           month: "short",
                           day: "numeric",
-                        })
+                        });
                         return (
                           <li key={slot.id}>
                             <button
@@ -406,7 +406,7 @@ export default function BookingFlow({
                               </div>
                             </button>
                           </li>
-                        )
+                        );
                       })}
                     </ul>
                   </div>
@@ -518,5 +518,5 @@ export default function BookingFlow({
         )}
       </div>
     </ErrorBoundary>
-  )
+  );
 }

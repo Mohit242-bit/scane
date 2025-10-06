@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { getCurrentUser, type User } from "@/lib/auth"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, MapPin, Clock, IndianRupee, Eye, Phone } from "lucide-react"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { getCurrentUser, type User } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, MapPin, Clock, IndianRupee, Eye, Phone } from "lucide-react";
+import Link from "next/link";
 
 interface Booking {
   id: string
@@ -28,61 +28,61 @@ interface Booking {
 }
 
 export default function BookingsPage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const [bookings, setBookings] = useState<Booking[]>([])
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
     const loadUserAndBookings = async () => {
-      const currentUser = await getCurrentUser()
+      const currentUser = await getCurrentUser();
       if (!currentUser) {
-        router.push("/auth/signin")
-        return
+        router.push("/auth/signin");
+        return;
       }
-      setUser(currentUser)
-      await fetchBookings(currentUser.id)
-    }
-    loadUserAndBookings()
-  }, [router])
+      setUser(currentUser);
+      await fetchBookings(currentUser.id);
+    };
+    loadUserAndBookings();
+  }, [router]);
 
   const fetchBookings = async (userId: string) => {
     try {
-      const response = await fetch("/api/bookings")
+      const response = await fetch("/api/bookings");
       if (response.ok) {
-        const data = await response.json()
-        setBookings(data)
+        const data = await response.json();
+        setBookings(data);
       }
     } catch (error) {
-      console.error("Failed to fetch bookings:", error)
+      console.error("Failed to fetch bookings:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "bg-green-600"
+        return "bg-green-600";
       case "pending":
-        return "bg-yellow-600"
+        return "bg-yellow-600";
       case "cancelled":
-        return "bg-red-600"
+        return "bg-red-600";
       default:
-        return "bg-gray-600"
+        return "bg-gray-600";
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
-    )
+    );
   }
 
   if (status === "unauthenticated") {
-    return null
+    return null;
   }
 
   return (
@@ -180,5 +180,5 @@ export default function BookingsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,48 +1,36 @@
-"use client"
+﻿"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Building2, 
   MapPin, 
-  Phone, 
-  Star, 
-  Calendar, 
-  Clock, 
-  DollarSign, 
   FileText, 
-  Users, 
-  TrendingUp,
+  Clock, 
   LogOut,
-  Settings,
   Eye,
-  Edit,
-  Plus
-} from "lucide-react"
-import { createClient } from "@/lib/supabase-browser"
-import { useToast } from "@/hooks/use-toast"
-
-interface User {
-  id: string
-  email: string
-  full_name: string
-  role: string
-}
-
-interface PartnerProfile {
-  id: string
-  business_name: string
-  business_email: string
-  business_phone: string
-  business_address: string
-  city: string
-  status: string
-}
+  CheckCircle,
+  AlertCircle,
+  Send,
+  Loader2
+} from "lucide-react";
+import { createClient } from "@/lib/supabase-browser";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Center {
   id: number
@@ -50,138 +38,239 @@ interface Center {
   address: string
   city: string
   area_hint: string
-  phone: string
-  rating: number
-  is_active: boolean
-  operating_hours: any
-  amenities: string[]
 }
 
-interface Booking {
+interface Prescription {
   id: string
   patient_name: string
+  patient_email: string
   patient_phone: string
-  appointment_date: string
+  prescription_files: any[]
+  notes: string
   status: string
-  total_amount: number
-  service_name?: string
-  center_name?: string
+  created_at: string
+  center: Center
+  recommendations: any[]
 }
 
-export default function PartnerDashboard() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const supabase = createClient()
+interface Service {
+  id: number
+  name: string
+  description: string
+  price: number
+  modality: string
+}
+
+export default function DoctorDashboard() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const supabase = createClient();
   
-  const [user, setUser] = useState<User | null>(null)
-  const [partner, setPartner] = useState<PartnerProfile | null>(null)
-  const [centers, setCenters] = useState<Center[]>([])
-  const [bookings, setBookings] = useState<Booking[]>([])
-  const [stats, setStats] = useState({
-    totalCenters: 0,
-    totalBookings: 0,
-    todayBookings: 0,
-    monthlyEarnings: 0,
-    avgRating: 0
-  })
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null);
+  const [centers, setCenters] = useState<Center[]>([]);
+  const [selectedCenter, setSelectedCenter] = useState<number | null>(null);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
+  
+  // Review Dialog State
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [currentPrescription, setCurrentPrescription] = useState<Prescription | null>(null);
+  const [selectedTests, setSelectedTests] = useState<number[]>([]);
+  const [doctorNotes, setDoctorNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    checkAuthAndFetchData()
-  }, [])
+    checkAuthAndFetchData();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCenter) {
+      fetchPrescriptions();
+    }
+  }, [selectedCenter]);
 
   const checkAuthAndFetchData = async () => {
     try {
-      // Check if user is authenticated
-      const { data: { user: authUser } } = await supabase.auth.getUser()
+      const { data: { user: authUser } } = await supabase.auth.getUser();
       
       if (!authUser) {
-        router.push("/partner/login")
-        return
+        router.push("/partner/login");
+        return;
       }
 
-      setUser(authUser as User)
-      await fetchPartnerData()
+      setUser(authUser);
+      await fetchCenters();
+      await fetchServices();
     } catch (error) {
-      console.error("Auth check error:", error)
-      router.push("/partner/login")
+      console.error("Auth check error:", error);
+      router.push("/partner/login");
     }
-  }
+  };
 
-  const fetchPartnerData = async () => {
+  const fetchCenters = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
+      
+      // Fetch all centers
+      const { data: centersData, error } = await supabase
+        .from("centers")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
 
-      // Get partner profile using API
-      const profileResponse = await fetch('/api/partner/profile', {
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
-      })
+      if (error) throw error;
 
-      if (!profileResponse.ok) {
-        if (profileResponse.status === 404) {
-          // Partner not onboarded yet, redirect to onboarding
-          router.push("/partner/onboarding")
-          return
-        }
-        throw new Error('Failed to load partner profile')
+      setCenters(centersData || []);
+      
+      // Auto-select first center if available
+      if (centersData && centersData.length > 0) {
+        setSelectedCenter(centersData[0].id);
       }
-
-      const partnerData = await profileResponse.json()
-      setPartner(partnerData)
-
-      // Get centers using API
-      const centersResponse = await fetch('/api/partner/centers', {
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
-      })
-
-      if (centersResponse.ok) {
-        const centersData = await centersResponse.json()
-        setCenters(centersData || [])
-
-        // Calculate stats
-        const avgRating = centersData.length > 0 
-          ? centersData.reduce((sum: number, c: Center) => sum + (c.rating || 0), 0) / centersData.length 
-          : 0
-
-        setStats({
-          totalCenters: centersData.length,
-          totalBookings: 0, // TODO: Get from bookings API
-          todayBookings: 0, // TODO: Get from bookings API
-          monthlyEarnings: 0, // TODO: Get from bookings API
-          avgRating: Math.round(avgRating * 10) / 10
-        })
-      }
-
-      // TODO: Get bookings for all centers when bookings API is ready
-
     } catch (error: any) {
-      console.error("Fetch error:", error)
+      console.error("Fetch centers error:", error);
       toast({
         title: "Error",
-        description: "Failed to load dashboard data",
+        description: "Failed to load centers",
         variant: "destructive"
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const fetchServices = async () => {
+    try {
+      const { data: servicesData, error } = await supabase
+        .from("services")
+        .select("*")
+        .order("name");
+
+      if (error) throw error;
+      setServices(servicesData || []);
+    } catch (error) {
+      console.error("Fetch services error:", error);
+    }
+  };
+
+  const fetchPrescriptions = async () => {
+    if (!selectedCenter) return;
+
+    try {
+      setLoadingPrescriptions(true);
+
+      const response = await fetch(`/api/prescriptions?center_id=${selectedCenter}`, {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch prescriptions");
+
+      const data = await response.json();
+      setPrescriptions(data.prescriptions || []);
+    } catch (error) {
+      console.error("Fetch prescriptions error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load prescriptions",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingPrescriptions(false);
+    }
+  };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/partner/login")
-  }
+    await supabase.auth.signOut();
+    router.push("/partner/login");
+  };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0
-    }).format(amount)
-  }
+  const openReviewDialog = (prescription: Prescription) => {
+    setCurrentPrescription(prescription);
+    setSelectedTests([]);
+    setDoctorNotes("");
+    setReviewDialogOpen(true);
+  };
+
+  const toggleTestSelection = (serviceId: number) => {
+    setSelectedTests(prev =>
+      prev.includes(serviceId)
+        ? prev.filter(id => id !== serviceId)
+        : [...prev, serviceId]
+    );
+  };
+
+  const handleSubmitRecommendation = async () => {
+    if (!currentPrescription || selectedTests.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one test",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const selectedServices = services.filter(s => selectedTests.includes(s.id));
+      const totalCost = selectedServices.reduce((sum, s) => sum + s.price, 0);
+
+      const response = await fetch("/api/test-recommendations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
+          prescription_id: currentPrescription.id,
+          service_ids: selectedTests,
+          recommended_tests: selectedServices.map(s => ({
+            id: s.id,
+            name: s.name,
+            description: s.description,
+            price: s.price,
+            modality: s.modality
+          })),
+          doctor_notes: doctorNotes,
+          total_estimated_cost: totalCost,
+          send_email: true
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to submit recommendation");
+
+      toast({
+        title: "Success",
+        description: "Test recommendation sent to patient via email"
+      });
+
+      setReviewDialogOpen(false);
+      fetchPrescriptions(); // Refresh list
+    } catch (error) {
+      console.error("Submit recommendation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit recommendation",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { label: string; variant: any }> = {
+      pending: { label: "Pending Review", variant: "secondary" },
+      reviewed: { label: "Reviewed", variant: "default" },
+      recommended: { label: "Recommended", variant: "default" },
+      completed: { label: "Completed", variant: "outline" }
+    };
+    const config = statusConfig[status] || statusConfig.pending;
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
@@ -190,329 +279,418 @@ export default function PartnerDashboard() {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit"
-    })
-  }
-
-  const getOperatingHoursText = (operatingHours: any) => {
-    if (!operatingHours) return "Not specified"
-    
-    // Convert operating hours object to readable text
-    const days = Object.keys(operatingHours)
-    if (days.length === 0) return "Not specified"
-    
-    // Show first day as example
-    const firstDay = operatingHours[days[0]]
-    if (firstDay?.closed) return "Varies"
-    
-    return `${firstDay?.start || '09:00'} - ${firstDay?.end || '18:00'}`
-  }
+    });
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0AA1A7] mx-auto mb-4"></div>
+          <Loader2 className="h-12 w-12 animate-spin text-[#0AA1A7] mx-auto mb-4" />
           <p className="text-[#5B6B7A]">Loading dashboard...</p>
         </div>
       </div>
-    )
-  }
-
-  if (!partner) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center p-6">
-            <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Partner Profile Not Found</h2>
-            <p className="text-[#5B6B7A] mb-4">
-              Your partner profile could not be found. Let's set it up!
-            </p>
-            <Button 
-              onClick={() => router.push("/partner/onboarding")}
-              className="bg-[#0AA1A7] hover:bg-[#089098]"
-            >
-              Complete Setup
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container max-w-6xl mx-auto px-4 py-4">
+      <div className="bg-gradient-to-r from-[#0AA1A7] to-[#089098] shadow-lg border-b">
+        <div className="container max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-[#0B1B2B]">{partner.business_name}</h1>
-              <p className="text-[#5B6B7A]">Partner Dashboard</p>
-            </div>
             <div className="flex items-center gap-3">
-              <Badge variant={partner.status === "approved" ? "default" : "secondary"}>
-                {partner.status === "approved" ? "Approved" : "Pending Approval"}
-              </Badge>
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+              <div className="bg-white/20 p-3 rounded-full">
+                <FileText className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white">👨‍⚕️ Doctor Dashboard</h1>
+                <p className="text-white/90 text-lg">Review prescriptions and recommend tests</p>
+              </div>
             </div>
+            <Button variant="secondary" size="sm" onClick={handleLogout} className="bg-white hover:bg-gray-100">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="container max-w-6xl mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid gap-6 md:grid-cols-5 mb-8">
-          <Card>
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0AA1A7]/10">
-                <Building2 className="h-5 w-5 text-[#0AA1A7]" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-[#0B1B2B]">{stats.totalCenters}</div>
-                <div className="text-sm text-[#5B6B7A]">Centers</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                <Calendar className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-[#0B1B2B]">{stats.totalBookings}</div>
-                <div className="text-sm text-[#5B6B7A]">Total Bookings</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                <Clock className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-[#0B1B2B]">{stats.todayBookings}</div>
-                <div className="text-sm text-[#5B6B7A]">Today</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-                <DollarSign className="h-5 w-5 text-yellow-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-[#0B1B2B]">{formatCurrency(stats.monthlyEarnings)}</div>
-                <div className="text-sm text-[#5B6B7A]">This Month</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-                <Star className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-[#0B1B2B]">{stats.avgRating}</div>
-                <div className="text-sm text-[#5B6B7A]">Avg Rating</div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="centers" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="centers">My Centers</TabsTrigger>
-            <TabsTrigger value="bookings">Recent Bookings</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="centers" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-[#0B1B2B]">Your Medical Centers</h2>
-              <Button 
-                className="bg-[#0AA1A7] hover:bg-[#089098]"
-                onClick={() => router.push("/partner/centers/new")}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Center
-              </Button>
+      <div className="container max-w-7xl mx-auto px-4 py-8">
+        {/* Center Selection */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Select Medical Center
+            </CardTitle>
+            <CardDescription>
+              Choose a center to view prescription uploads from that location
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {centers.map((center) => (
+                <div
+                  key={center.id}
+                  onClick={() => setSelectedCenter(center.id)}
+                  className={`
+                    p-4 border-2 rounded-lg cursor-pointer transition-all
+                    ${selectedCenter === center.id 
+                      ? "border-[#0AA1A7] bg-[#0AA1A7]/5" 
+                      : "border-gray-200 hover:border-gray-300"}
+                  `}
+                >
+                  <h3 className="font-semibold text-lg mb-1">{center.name}</h3>
+                  <div className="flex items-start gap-2 text-sm text-gray-600">
+                    <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span>{center.area_hint || center.city}</span>
+                  </div>
+                  {selectedCenter === center.id && (
+                    <div className="mt-2">
+                      <Badge variant="default">Selected</Badge>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-
-            {centers.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Centers Found</h3>
-                  <p className="text-[#5B6B7A] mb-4">
-                    You haven't added any medical centers yet. Complete your onboarding to add your first center.
-                  </p>
-                  <Button 
-                    className="bg-[#0AA1A7] hover:bg-[#089098]"
-                    onClick={() => router.push("/partner/onboarding")}
-                  >
-                    Complete Onboarding
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2">
-                {centers.map((center) => (
-                  <Card key={center.id}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg">{center.name}</CardTitle>
-                          <CardDescription className="flex items-center gap-1 mt-1">
-                            <MapPin className="h-4 w-4" />
-                            {center.address}, {center.city}
-                          </CardDescription>
-                          {center.area_hint && (
-                            <CardDescription className="mt-1 text-sm">
-                              {center.area_hint}
-                            </CardDescription>
-                          )}
-                        </div>
-                        <Badge variant={center.is_active ? "default" : "secondary"}>
-                          {center.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="h-4 w-4 text-[#5B6B7A]" />
-                          <span>{center.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Star className="h-4 w-4 text-yellow-500" />
-                          <span>{center.rating}/5.0 rating</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-[#5B6B7A]" />
-                          <span>{getOperatingHoursText(center.operating_hours)}</span>
-                        </div>
-                        {center.amenities && center.amenities.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {center.amenities.slice(0, 3).map((amenity, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {amenity}
-                              </Badge>
-                            ))}
-                            {center.amenities.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{center.amenities.length - 3} more
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                        <div className="flex gap-2 pt-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => router.push(`/partner/centers/${center.id}`)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => router.push(`/partner/centers/${center.id}/edit`)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+            {centers.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Building2 className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                <p>No centers available</p>
               </div>
             )}
-          </TabsContent>
+          </CardContent>
+        </Card>
 
-          <TabsContent value="bookings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Bookings</CardTitle>
-                <CardDescription>
-                  Latest bookings across all your centers
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Bookings Yet</h3>
-                  <p className="text-[#5B6B7A]">
-                    Your bookings will appear here once patients start booking.
-                  </p>
+        {/* Prescriptions List */}
+        {selectedCenter && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Prescription Uploads</CardTitle>
+                  <CardDescription>
+                    Review patient prescriptions and recommend appropriate tests
+                  </CardDescription>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={fetchPrescriptions}
+                  disabled={loadingPrescriptions}
+                >
+                  {loadingPrescriptions ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Refresh"
+                  )}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="pending">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="pending">
+                    Pending ({prescriptions.filter(p => p.status === "pending").length})
+                  </TabsTrigger>
+                  <TabsTrigger value="recommended">
+                    Recommended ({prescriptions.filter(p => p.status === "recommended").length})
+                  </TabsTrigger>
+                  <TabsTrigger value="all">
+                    All ({prescriptions.length})
+                  </TabsTrigger>
+                </TabsList>
 
-          <TabsContent value="profile" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Partner Profile</CardTitle>
-                <CardDescription>
-                  Your business information and account details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <TabsContent value="pending" className="space-y-4">
+                  {prescriptions
+                    .filter(p => p.status === "pending")
+                    .map((prescription) => (
+                      <PrescriptionCard
+                        key={prescription.id}
+                        prescription={prescription}
+                        onReview={openReviewDialog}
+                      />
+                    ))}
+                  {prescriptions.filter(p => p.status === "pending").length === 0 && (
+                    <EmptyState message="No pending prescriptions" />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="recommended" className="space-y-4">
+                  {prescriptions
+                    .filter(p => p.status === "recommended")
+                    .map((prescription) => (
+                      <PrescriptionCard
+                        key={prescription.id}
+                        prescription={prescription}
+                        onReview={openReviewDialog}
+                      />
+                    ))}
+                  {prescriptions.filter(p => p.status === "recommended").length === 0 && (
+                    <EmptyState message="No recommended prescriptions" />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="all" className="space-y-4">
+                  {prescriptions.map((prescription) => (
+                    <PrescriptionCard
+                      key={prescription.id}
+                      prescription={prescription}
+                      onReview={openReviewDialog}
+                    />
+                  ))}
+                  {prescriptions.length === 0 && (
+                    <EmptyState message="No prescriptions found" />
+                  )}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Review Dialog */}
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Review Prescription & Recommend Tests</DialogTitle>
+            <DialogDescription>
+              Select appropriate tests for the patient
+            </DialogDescription>
+          </DialogHeader>
+
+          {currentPrescription && (
+            <div className="space-y-6 py-4">
+              {/* Patient Info */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">Patient Information</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <label className="text-sm font-medium text-[#5B6B7A]">Business Name</label>
-                    <p className="text-base font-semibold">{partner.business_name}</p>
+                    <span className="text-gray-600">Name:</span>
+                    <span className="ml-2 font-medium">{currentPrescription.patient_name}</span>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#5B6B7A]">Status</label>
-                    <p className="text-base font-semibold">
-                      <Badge variant={partner.status === "approved" ? "default" : "secondary"}>
-                        {partner.status}
-                      </Badge>
+                    <span className="text-gray-600">Email:</span>
+                    <span className="ml-2 font-medium">{currentPrescription.patient_email}</span>
+                  </div>
+                  {currentPrescription.patient_phone && (
+                    <div>
+                      <span className="text-gray-600">Phone:</span>
+                      <span className="ml-2 font-medium">{currentPrescription.patient_phone}</span>
+                    </div>
+                  )}
+                </div>
+                {currentPrescription.notes && (
+                  <div className="mt-3">
+                    <span className="text-gray-600">Notes:</span>
+                    <p className="mt-1">{currentPrescription.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Prescription Files */}
+              {currentPrescription.prescription_files && currentPrescription.prescription_files.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Uploaded Prescriptions</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {currentPrescription.prescription_files.map((file: any, index: number) => (
+                      <div key={index} className="border rounded-lg p-3">
+                        <FileText className="h-8 w-8 text-blue-600 mb-2" />
+                        <p className="text-sm font-medium">{file.name || `Prescription ${index + 1}`}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Test Selection */}
+              <div>
+                <h3 className="font-semibold mb-3">Select Recommended Tests</h3>
+                <div className="space-y-2 max-h-96 overflow-y-auto border rounded-lg p-4">
+                  {services.map((service) => (
+                    <div
+                      key={service.id}
+                      className={`
+                        flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all
+                        ${selectedTests.includes(service.id) 
+                          ? "border-[#0AA1A7] bg-[#0AA1A7]/5" 
+                          : "border-gray-200 hover:border-gray-300"}
+                      `}
+                      onClick={() => toggleTestSelection(service.id)}
+                    >
+                      <Checkbox 
+                        checked={selectedTests.includes(service.id)}
+                        onCheckedChange={() => toggleTestSelection(service.id)}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{service.name}</h4>
+                          <span className="text-[#0AA1A7] font-semibold">₹{service.price}</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{service.description}</p>
+                        <Badge variant="outline" className="mt-2 text-xs">
+                          {service.modality}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {selectedTests.length > 0 && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Total Estimated Cost:</span>
+                      <span className="text-xl font-bold text-[#0AA1A7]">
+                        ₹{services
+                          .filter(s => selectedTests.includes(s.id))
+                          .reduce((sum, s) => sum + s.price, 0)
+                          .toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {selectedTests.length} test(s) selected
                     </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-[#5B6B7A]">Business Email</label>
-                    <p className="text-base">{partner.business_email}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-[#5B6B7A]">Business Phone</label>
-                    <p className="text-base">{partner.business_phone}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <label className="text-sm font-medium text-[#5B6B7A]">Address</label>
-                    <p className="text-base">{partner.business_address}, {partner.city}</p>
-                  </div>
-                </div>
-                <div className="pt-4">
-                  <Button variant="outline" onClick={() => router.push("/partner/profile/edit")}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Profile
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+                )}
+              </div>
+
+              {/* Doctor Notes */}
+              <div>
+                <Label htmlFor="doctor_notes">Doctor's Notes (Optional)</Label>
+                <Textarea
+                  id="doctor_notes"
+                  value={doctorNotes}
+                  onChange={(e) => setDoctorNotes(e.target.value)}
+                  placeholder="Add any additional notes or instructions for the patient..."
+                  rows={4}
+                  className="mt-2"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setReviewDialogOpen(false)}
+                  disabled={submitting}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmitRecommendation}
+                  disabled={submitting || selectedTests.length === 0}
+                  className="flex-1 bg-[#0AA1A7] hover:bg-[#089098]"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Send Recommendation via Email
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
-  )
+  );
 }
 
+// Prescription Card Component
+function PrescriptionCard({ 
+  prescription, 
+  onReview 
+}: { 
+  prescription: Prescription
+  onReview: (p: Prescription) => void 
+}) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
 
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { label: string; variant: any }> = {
+      pending: { label: "Pending Review", variant: "secondary" },
+      reviewed: { label: "Reviewed", variant: "default" },
+      recommended: { label: "Recommended", variant: "default" },
+      completed: { label: "Completed", variant: "outline" }
+    };
+    const config = statusConfig[status] || statusConfig.pending;
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  return (
+    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="font-semibold text-lg">{prescription.patient_name}</h3>
+          <p className="text-sm text-gray-600">{prescription.patient_email}</p>
+        </div>
+        {getStatusBadge(prescription.status)}
+      </div>
+
+      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+        <div className="flex items-center gap-1">
+          <Clock className="h-4 w-4" />
+          <span>{formatDate(prescription.created_at)}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <FileText className="h-4 w-4" />
+          <span>{prescription.prescription_files?.length || 0} file(s)</span>
+        </div>
+      </div>
+
+      {prescription.notes && (
+        <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+          <span className="font-medium">Notes:</span> {prescription.notes}
+        </p>
+      )}
+
+      {prescription.recommendations && prescription.recommendations.length > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded p-3 mb-3">
+          <div className="flex items-center gap-2 text-green-700">
+            <CheckCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">Tests Recommended</span>
+          </div>
+          <p className="text-sm text-gray-600 mt-1">
+            Total Cost: ₹{prescription.recommendations[0]?.total_estimated_cost?.toLocaleString()}
+          </p>
+        </div>
+      )}
+
+      <Button
+        variant={prescription.status === "pending" ? "default" : "outline"}
+        size="sm"
+        onClick={() => onReview(prescription)}
+        className="w-full"
+      >
+        <Eye className="h-4 w-4 mr-2" />
+        {prescription.status === "pending" ? "Review & Recommend" : "View Details"}
+      </Button>
+    </div>
+  );
+}
+
+// Empty State Component
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="text-center py-12">
+      <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+      <p className="text-gray-600">{message}</p>
+    </div>
+  );
+}
